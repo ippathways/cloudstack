@@ -31,7 +31,7 @@ function customizeBrand(brandpath) {
 function finishSetup() {
     // Set the domain if we're on the login form (element exists)
     var domainInput = $('div.login.nologo input[name="domain"]')
-    if (domainInput.length > 0 && custombrand) {
+    if (domainInput.length > 0 && custombrand && (custombrand != defaultbrand)) {
         domainInput.val(custombrand)
     }
 
