@@ -829,12 +829,8 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             caService.purgeHostCertificate(host);
         }
 
-        if (s_logger.isDebugEnabled()) {
-            s_logger.debug("Deregistering link for " + hostId + " with state " + nextStatus);
-        }
-
         if (removeAgent) {
-            s_logger.debug("Deregistering link for " + hostId + " with state " + nextStatus);		             if (s_logger.isDebugEnabled()) {
+            if (s_logger.isDebugEnabled()) {
                 s_logger.debug("Deregistering link for " + hostId + " with state " + nextStatus);
             }
             removeAgent(attache, nextStatus);
