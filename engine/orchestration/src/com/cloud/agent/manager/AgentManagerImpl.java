@@ -1373,6 +1373,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             final TransactionLegacy txn = TransactionLegacy.open(TransactionLegacy.CLOUD_DB);
             try {
                 final Type type = task.getType();
+                s_logger.debug("doTask: with task type of " + type);
                 if (type == Task.Type.DATA) {
                     final byte[] data = task.getData();
                     try {
