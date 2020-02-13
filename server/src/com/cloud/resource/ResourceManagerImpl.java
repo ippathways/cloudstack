@@ -1726,10 +1726,12 @@ public class ResourceManagerImpl extends ManagerBase implements ResourceManager,
         HostVO host = getNewHost(cmds);
 
         if (host == null) {
+            s_logger.debug("createHostVO: Failed to find HostVO, creating new for host " + startup.getName());
             host = new HostVO(startup.getGuid());
 
             newHost = true;
         }
+        s_logger.debug("createHostVO: Got host with id " + host.getId());
 
         String dataCenter = startup.getDataCenter();
         String pod = startup.getPod();
