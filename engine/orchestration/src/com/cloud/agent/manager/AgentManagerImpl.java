@@ -796,6 +796,17 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             s_logger.warn("Can't find host with " + hostId);
             nextStatus = Status.Removed;
         } else {
+            final ResourceState resourceState = host.getResourceState();
+            if (host.getType() == Host.Type.Routing && event == Event.ShutdownRequested && resourceState != ResourceState.Maintenance && removeAgent) {
+                // The host agent is shutting itself down gracefully, the host isn't in maintenance and we are removing the host's monitoring task.
+                final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
+                final HostPodVO podVO = _podDao.findById(host.getPodId());
+                final String hostDesc = "[name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName() + "]";
+                final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
+                s_logger.warn(hostShortDesc + " has disconnected with event " + event + ",  but was in resource state " + resourceState + ", not in Maintenance.  Agent Monitor is also being removed.");
+                _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), hostShortDesc + " agent is shutting down",
+                                "The agent for host " + hostDesc + " has disconnected with event " + event + ",  but was in resource state " + resourceState + ", not in Maintenance.  Host should be put into Maintenance before shutting down the host agent.");
+            }
             final Status currentStatus = host.getStatus();
             if (currentStatus == Status.Down || currentStatus == Status.Alert || currentStatus == Status.Removed) {
                 if (s_logger.isDebugEnabled()) {
@@ -812,17 +823,19 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 }
 
                 if (s_logger.isDebugEnabled()) {
-                    s_logger.debug("The next status of agent " + hostId + "is " + nextStatus + ", current status is " + currentStatus);
+                    s_logger.debug("The next status of agent " + hostId + " is " + nextStatus + ", current status is " + currentStatus);
                 }
             }
             caService.purgeHostCertificate(host);
         }
 
-        if (s_logger.isDebugEnabled()) {
-            s_logger.debug("Deregistering link for " + hostId + " with state " + nextStatus);
+        if (removeAgent) {
+            if (s_logger.isDebugEnabled()) {
+                s_logger.debug("Deregistering link for " + hostId + " with state " + nextStatus);
+            }
+            removeAgent(attache, nextStatus);
         }
 
-        removeAgent(attache, nextStatus);
         // update the DB
         if (host != null && transitState) {
             disconnectAgent(host, event, _nodeId);
@@ -936,7 +949,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 if (_investigate == true) {
                     handleDisconnectWithInvestigation(_attache, _event);
                 } else {
-                    handleDisconnectWithoutInvestigation(_attache, _event, true, false);
+                    handleDisconnectWithoutInvestigation(_attache, _event, true, true);
                 }
             } catch (final Exception e) {
                 s_logger.error("Exception caught while handling disconnect: ", e);
