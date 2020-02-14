@@ -1252,8 +1252,28 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 } else {
                     // submit the task for execution
                     request.logD("Scheduling the first command ");
-                    s_logger.debug("AgentHandler.processRequest() with null attache and StartupCommand", new Exception());
+                    HostVO host = _hostDao.findById(cmd.getId());
+                    final Status proirStatus = host != null ? host.getStatus() : Status.Unknown;
                     connectAgent(link, cmds, request);
+                    if (host == null) {
+                        host = _hostDao.findById(cmd.getId());
+                    }
+                    if (host != null) {
+                        final ResourceState resourceState = host.getResourceState();
+                        // If the host agent just connected, but it wasn't in maintenance mode, send an alert to essentially
+                        // notify that the agent is back up/connected
+                        if (resourceState != ResourceState.Maintenance) {
+                            final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
+                            final HostPodVO podVO = _podDao.findById(host.getPodId());
+                            final String hostDesc = "[name: " + host.getName() + " (id:" + host.getId() + "), availability zone: "
+                                + dcVO.getName() + ", pod: " + podVO.getName() + "]";
+                            final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
+                            s_logger.info(hostShortDesc + " has connected, and is in resource state " + resourceState + ", not in Maintenance.");
+                            _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(),
+                                hostShortDesc + " agent is starting", "The agent for host " + hostDesc
+                                + " has connected, and is in resource state " + resourceState + ", not in Maintenance.");
+                        }
+                    }
                 }
                 return;
             }
