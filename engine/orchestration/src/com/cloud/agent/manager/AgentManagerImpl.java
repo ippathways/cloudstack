@@ -1252,6 +1252,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 } else {
                     // submit the task for execution
                     request.logD("Scheduling the first command ");
+                    s_logger.debug("AgentHandler.processRequest() with null attache and StartupCommand", new Exception());
                     connectAgent(link, cmds, request);
                 }
                 return;
