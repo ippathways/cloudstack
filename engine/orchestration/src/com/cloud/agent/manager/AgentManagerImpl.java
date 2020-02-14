@@ -1250,15 +1250,16 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 if (!(cmd instanceof StartupCommand)) {
                     s_logger.warn("Throwing away a request because it came through as the first command on a connect: " + request);
                 } else {
+                    StartupCommand scmd = (StartupCommand)cmd;
                     // submit the task for execution
                     request.logD("Scheduling the first command ");
-                    HostVO host = _hostDao.findById(cmd.getId());
+                    HostVO host = _hostDao.findById(scmd.getId());
                     final Status proirStatus = host != null ? host.getStatus() : Status.Unknown;
                     connectAgent(link, cmds, request);
                     if (host == null) {
-                        host = _hostDao.findById(cmd.getId());
+                        host = _hostDao.findById(scmd.getId());
                     }
-                    if (host != null) {
+                    if (host != null && cmd instanceof StartupRoutingCommand) {
                         final ResourceState resourceState = host.getResourceState();
                         // If the host agent just connected, but it wasn't in maintenance mode, send an alert to essentially
                         // notify that the agent is back up/connected
