@@ -1445,6 +1445,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
 
     @Override
     public boolean agentStatusTransitTo(final HostVO host, final Status.Event e, final long msId) {
+        boolean didTransit = false;
         try {
             _agentStatusLock.lock();
             if (status_logger.isDebugEnabled()) {
@@ -1458,7 +1459,25 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
 
             host.setManagementServerId(msId);
             try {
-                return _statusStateMachine.transitTo(host, e, host.getId(), _hostDao);
+                final Status hostStatus = host.getStatus();
+                final Status nextStatus = hostStatus.getNextStatus(e);
+                if (status_logger.isDebugEnabled()) {
+                    status_logger.debug("agentStatusTransitTo: old status - " + hostStatus + ", new status - " + nextStatus);
+                }
+                didTransit = _statusStateMachine.transitTo(host, e, host.getId(), _hostDao);
+                if (didTransit && nextStatus == Status.Up
+                        && (hostStatus == Status.Alert || hostStatus == Status.Disconnected || hostStatus == Status.Down || hostStatus == Status.Error || hostStatus == Status.Unknown)) {
+                    final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
+                    final HostPodVO podVO = _podDao.findById(host.getPodId());
+                    final String hostDesc = "[name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName() + "]";
+                    final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
+                    if (status_logger.isDebugEnabled()) {
+                        status_logger.debug("The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
+                    }
+                    _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), hostShortDesc + " is now Up",
+                        "The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
+                }
+
             } catch (final NoTransitionException e1) {
                 status_logger.debug("Cannot transit agent status with event " + e + " for host " + host.getId() + ", name=" + host.getName() +
                                 ", mangement server id is " + msId);
@@ -1468,6 +1487,8 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
         } finally {
             _agentStatusLock.unlock();
         }
+
+        return didTransit;
     }
 
     public boolean disconnectAgent(final HostVO host, final Status.Event e, final long msId) {
@@ -1643,6 +1664,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                         final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName();
                         _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Migration Complete for host " + hostDesc, "Host ["
                                         + hostDesc + "] is ready for maintenance");
+                        disconnectWithoutInvestigation(host.getId(), Event.ShutdownRequested);  // Host now in maintenance, disconnect and remove Monitor
                     }
                 }
             } catch (final Throwable th) {
