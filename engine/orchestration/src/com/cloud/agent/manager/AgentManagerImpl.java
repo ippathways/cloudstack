@@ -1468,6 +1468,11 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                     final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
                     _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), hostShortDesc + " is now Up",
                         "The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
+
+                    return true;
+                }
+                else {
+                    return false;
                 }
 
             } catch (final NoTransitionException e1) {
