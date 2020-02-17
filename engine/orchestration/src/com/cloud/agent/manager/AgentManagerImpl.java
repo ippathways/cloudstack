@@ -22,6 +22,8 @@ import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.time.LocalDateTime; // java.util.date is now considered Legacy
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1461,21 +1463,19 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             try {
                 final Status hostStatus = host.getStatus();
                 final Status nextStatus = hostStatus.getNextStatus(e);
-                if (status_logger.isDebugEnabled()) {
-                    status_logger.debug("agentStatusTransitTo: old status - " + hostStatus + ", new status - " + nextStatus);
-                }
+
                 didTransit = _statusStateMachine.transitTo(host, e, host.getId(), _hostDao);
-                if (didTransit && nextStatus == Status.Up
-                        && (hostStatus == Status.Alert || hostStatus == Status.Disconnected || hostStatus == Status.Down || hostStatus == Status.Error || hostStatus == Status.Unknown)) {
+                if (status_logger.isDebugEnabled()) {
+                    status_logger.debug("agentStatusTransitTo: old status - " + hostStatus + ", event - " + e + ", new status - " + nextStatus + " (" + (didTransit ? "success)" : "failed)"));
+                }
+                if (hostStatus.getTransitionAlertFlag(e)) {
+                    final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd H:m:s,SSS");
                     final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
                     final HostPodVO podVO = _podDao.findById(host.getPodId());
                     final String hostDesc = "[name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName() + "]";
                     final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
-                    if (status_logger.isDebugEnabled()) {
-                        status_logger.debug("The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
-                    }
-                    _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), hostShortDesc + " is now Up",
-                        "The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
+                    _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), hostShortDesc + " transit from " + hostStatus + " to " + nextStatus +  " (" + (didTransit ? "success)" : "failed)"),
+                        (dateFormatter.format(LocalDateTime.now())) + "\r\nTransit agent status with event " + e + " for host " + hostDesc + " from " + hostStatus + " to " + nextStatus + (didTransit ? " was successful" : " failed"));
                 }
 
             } catch (final NoTransitionException e1) {
