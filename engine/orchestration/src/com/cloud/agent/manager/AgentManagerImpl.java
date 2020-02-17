@@ -1445,7 +1445,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
 
     @Override
     public boolean agentStatusTransitTo(final HostVO host, final Status.Event e, final long msId) {
-        final boolean didTransit = false;
+        boolean didTransit = false;
         try {
             _agentStatusLock.lock();
             if (status_logger.isDebugEnabled()) {
