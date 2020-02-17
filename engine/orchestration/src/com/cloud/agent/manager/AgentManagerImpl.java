@@ -1445,6 +1445,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
 
     @Override
     public boolean agentStatusTransitTo(final HostVO host, final Status.Event e, final long msId) {
+        final didTransit = false;
         try {
             _agentStatusLock.lock();
             if (status_logger.isDebugEnabled()) {
@@ -1459,20 +1460,22 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             host.setManagementServerId(msId);
             try {
                 final Status hostStatus = host.getStatus();
-                if (_statusStateMachine.transitTo(host, e, host.getId(), _hostDao)
-                        && hostStatus.getNextStatus(e) == Status.Up
+                final Status nextStatus = hostStatus.getNextStatus(e);
+                if (status_logger.isDebugEnabled()) {
+                    status_logger.debug("agentStatusTransitTo: old status - " + hostStatus + ", new status - " + nextStatus);
+                }
+                didTransit = _statusStateMachine.transitTo(host, e, host.getId(), _hostDao);
+                if (didTransit && nextStatus == Status.Up
                         && (hostStatus == Status.Alert || hostStatus == Status.Disconnected || hostStatus == Status.Down || hostStatus == Status.Error || hostStatus == Status.Unknown)) {
                     final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
                     final HostPodVO podVO = _podDao.findById(host.getPodId());
                     final String hostDesc = "[name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName() + "]";
                     final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
+                    if (status_logger.isDebugEnabled()) {
+                        status_logger.debug("The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
+                    }
                     _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), hostShortDesc + " is now Up",
                         "The agent status for host " + hostDesc + " changed from " + hostStatus + " to Up");
-
-                    return true;
-                }
-                else {
-                    return false;
                 }
 
             } catch (final NoTransitionException e1) {
@@ -1484,6 +1487,8 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
         } finally {
             _agentStatusLock.unlock();
         }
+
+        return didTransit;
     }
 
     public boolean disconnectAgent(final HostVO host, final Status.Event e, final long msId) {
