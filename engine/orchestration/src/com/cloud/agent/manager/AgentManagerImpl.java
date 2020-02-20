@@ -1664,7 +1664,6 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                         final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName();
                         _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Migration Complete for host " + hostDesc, "Host ["
                                         + hostDesc + "] is ready for maintenance");
-                        disconnectWithoutInvestigation(host.getId(), Event.ShutdownRequested);  // Host now in maintenance, disconnect and remove Monitor
                     }
                 }
             } catch (final Throwable th) {
