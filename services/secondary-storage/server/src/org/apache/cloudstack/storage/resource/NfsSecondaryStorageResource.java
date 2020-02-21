@@ -2260,6 +2260,7 @@ public class NfsSecondaryStorageResource extends ServerResourceBase implements S
     protected Answer deleteTemplate(DeleteCommand cmd) {
         DataTO obj = cmd.getData();
         DataStoreTO dstore = obj.getDataStore();
+        s_logger.info("in deleteTemplate()", new Exception());
         if (dstore instanceof NfsTO) {
             NfsTO nfs = (NfsTO)dstore;
             String relativeTemplatePath = obj.getPath();
