@@ -870,7 +870,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 s_logger.info("The agent from host " + hostId + " state determined is " + determinedState);
 
                 if (determinedState == Status.Down) {
-                    final String message = "Host is down: " + host.getId() + "-" + host.getName() + ". Starting HA on the VMs";
+                    final String message = "Host is down: " + host.getId() + "-" + host.getName();
                     s_logger.error(message);
                     if (host.getType() != Host.Type.SecondaryStorage && host.getType() != Host.Type.ConsoleProxy) {
                         _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host down, " + host.getId(), message);
@@ -899,16 +899,21 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                             _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host disconnected, " + hostDesc,
                                             "If the agent for host [" + hostDesc + "] is not restarted within " + AlertWait + " seconds, host will go to Alert state");
                         }
-                        event = Status.Event.AgentDisconnected;
+                        agentStatusTransitTo(host, Status.Event.AgentUnreachable, _nodeId);
+                        return false;
                     }
-                } else {
-                    // if we end up here we are in alert state, send an alert
+                } else if (determinedState == Status.Alert) {
                     final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
                     final HostPodVO podVO = _podDao.findById(host.getPodId());
                     final String podName = podVO != null ? podVO.getName() : "NO POD";
                     final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podName;
                     _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host in ALERT state, " + hostDesc,
                                     "In availability zone " + host.getDataCenterId() + ", host is in alert state: " + host.getId() + "-" + host.getName());
+                } else {
+                    // Unhandled determinedState returned by investigators!
+                    final String msg = "Investigators returned unhandled host state of " + determinedState + " for: " + host.getId() + "-" + host.getName() + " - host will go to Alert state.";
+                    s_logger.error(msg);
+                    _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Investigators returned an unhandled state of " + determinedState + " for " + host.getName(), msg);
                 }
             } else {
                 s_logger.debug("The next status of agent " + host.getId() + " is not Alert, no need to investigate what happened");
