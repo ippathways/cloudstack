@@ -210,6 +210,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                     "false",
                     "This parameter allows developers to enable a check to see if a transaction wraps commands that are sent to the resource.  This is not to be enabled on production systems.",
                     true);
+    protected final ConfigKey<Boolean> AlertOnHostTransitions = new ConfigKey<Boolean>("Advanced", Boolean.class, "alert.on.host.transition", "false", "Alert when host Status changes.",true);
 
     @Override
     public boolean configure(final String name, final Map<String, Object> params) throws ConfigurationException {
@@ -1468,14 +1469,11 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 if (status_logger.isDebugEnabled()) {
                     status_logger.debug("agentStatusTransitTo: old status - " + hostStatus + ", event - " + e + ", new status - " + nextStatus + " (" + (didTransit ? "success)" : "failed)"));
                 }
-                if (hostStatus.getTransitionAlertFlag(e)) {
+                if (AlertOnHostTransitions.value() && hostStatus.getTransitionAlertFlag(e)) {
                     final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd H:m:s,SSS");
-                    final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
-                    final HostPodVO podVO = _podDao.findById(host.getPodId());
-                    final String hostDesc = "[name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName() + "]";
                     final String hostShortDesc = "Host " + host.getName() + " (id:" + host.getId() + ")";
                     _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), host.getName() + " transit from " + hostStatus + " to " + nextStatus +  " (" + (didTransit ? "success)" : "failed)"),
-                        (dateFormatter.format(LocalDateTime.now())) + "\r\nTransit agent status with event " + e + " for host " + hostDesc + " from " + hostStatus + " to " + nextStatus + (didTransit ? " was successful" : " failed"));
+                        (dateFormatter.format(LocalDateTime.now())) + "\r\nTransit agent status with event " + e + " for host " + hostShortDesc + " from " + hostStatus + " to " + nextStatus + (didTransit ? " was successful" : " failed"));
                 }
 
             } catch (final NoTransitionException e1) {
@@ -1765,7 +1763,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
     @Override
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] { CheckTxnBeforeSending, Workers, Port, Wait, AlertWait, DirectAgentLoadSize, DirectAgentPoolSize,
-                        DirectAgentThreadCap };
+                        DirectAgentThreadCap, AlertOnHostTransitions };
     }
 
     protected class SetHostParamsListener implements Listener {
