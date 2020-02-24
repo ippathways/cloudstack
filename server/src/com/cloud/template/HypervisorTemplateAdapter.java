@@ -535,8 +535,7 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
                             // This may not be a real error, if the template hadn't successfully downloaded, so check that
                             // Hate to make an assumption that if the template hadn't downloaded, and we get an error here, that they
                             // directly correspond, but without more intimate knowledge of the error, it is difficult to assess further
-                            long storeId = store.getId();
-                            List<TemplateDataStoreVO> templateStores = _tmpltStoreDao.listByTemplateStore(template.getId(), storeId);
+                            List<TemplateDataStoreVO> templateStores = _tmpltStoreDao.listByTemplateStore(template.getId(), imageStore.getId());
                             for (TemplateDataStoreVO templateStore : templateStores) {
                                 if (templateStore.getDownloadState() == Status.DOWNLOAD_ERROR) {
                                     // Just assume this error is because it didn't properly download
