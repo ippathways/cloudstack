@@ -532,7 +532,22 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
                         success = result.isSuccess();
                         if (!success) {
                             s_logger.warn("Failed to delete the template: " + template + " from the image store: " + imageStore.getName() + " due to: " + result.getResult());
-                            break;
+                            // This may not be a real error, if the template hadn't successfully downloaded, so check that
+                            // Hate to make an assumption that if the template hadn't downloaded, and we get an error here, that they
+                            // directly correspond, but without more intimate knowledge of the error, it is difficult to assess further
+                            List<TemplateDataStoreVO> templateStores = _tmpltStoreDao.listByTemplateStore(template.getId(), imageStore.getId());
+                            for (TemplateDataStoreVO templateStore : templateStores) {
+                                if (templateStore.getDownloadState() == Status.DOWNLOAD_ERROR) {
+                                    // Just assume this error is because it didn't properly download
+                                    // Not sure how this behaves if there are multiple stores
+                                    s_logger.info("Assuming failure to delete template from image store was due to DOWNLOAD_ERROR status, continuing to delete");
+                                    success = true;
+                                }
+                            }
+
+                            if (!success) {
+                                break;
+                            }
                         }
 
                         // remove from template_zone_ref
