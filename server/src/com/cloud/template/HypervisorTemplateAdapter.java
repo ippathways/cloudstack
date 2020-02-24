@@ -462,7 +462,7 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
                 long storeId = store.getId();
                 List<TemplateDataStoreVO> templateStores = _tmpltStoreDao.listByTemplateStore(template.getId(), storeId);
                 for (TemplateDataStoreVO templateStore : templateStores) {
-                    s_logger.debug("Template: " + template.getName() + " is currently in download state: " + template.getDownloadState() + " and state " + template.getState());
+                    s_logger.debug("Template: " + template.getName() + " is currently in download state: " + templateStore.getDownloadState() + " and state " + templateStore.getState());
                     if (templateStore.getDownloadState() == Status.DOWNLOAD_IN_PROGRESS) {
                         String errorMsg = "Please specify a template that is not currently being downloaded.";
                         s_logger.debug("Template: " + template.getName() + " is currently being downloaded to secondary storage host: " + store.getName() + "; cant' delete it.");
