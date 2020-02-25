@@ -554,6 +554,7 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
                         List<VMTemplateZoneVO> templateZones = templateZoneDao.listByZoneTemplate(sZoneId, template.getId());
                         if (templateZones != null) {
                             for (VMTemplateZoneVO templateZone : templateZones) {
+                                s_logger.debug("Remove template_zone_ref " + templateZone.getId() + " for template " + template);
                                 templateZoneDao.remove(templateZone.getId());
                             }
                         }
@@ -571,6 +572,7 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
         if (success) {
             if ((imageStores != null && imageStores.size() > 1) && (profile.getZoneIdList() != null)) {
                 //if template is stored in more than one image stores, and the zone id is not null, then don't delete other templates.
+                s_logger.debug("Template exists in more image stores, so leaving remaining rows");
                 return success;
             }
 
@@ -585,6 +587,7 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
             List<DataStore> iStores = templateMgr.getImageStoreByTemplate(template.getId(), null);
             if (iStores == null || iStores.size() == 0) {
                 // Mark template as Inactive.
+                s_logger.debug("Marking template " + template + " as inactive");
                 template.setState(VirtualMachineTemplate.State.Inactive);
                 _tmpltDao.update(template.getId(), template);
 
