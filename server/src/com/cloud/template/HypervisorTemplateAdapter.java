@@ -571,6 +571,7 @@ public class HypervisorTemplateAdapter extends TemplateAdapterBase {
         if (success) {
             if ((imageStores != null && imageStores.size() > 1) && (profile.getZoneIdList() != null)) {
                 //if template is stored in more than one image stores, and the zone id is not null, then don't delete other templates.
+                s_logger.debug("Template exists in more image stores, so leaving remaining rows");
                 return success;
             }
 
