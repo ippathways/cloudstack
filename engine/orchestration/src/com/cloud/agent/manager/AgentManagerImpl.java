@@ -903,14 +903,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                         agentStatusTransitTo(host, Status.Event.AgentUnreachable, _nodeId);
                         return false;
                     }
-                } else if (determinedState == Status.Alert) {
-                    final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
-                    final HostPodVO podVO = _podDao.findById(host.getPodId());
-                    final String podName = podVO != null ? podVO.getName() : "NO POD";
-                    final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podName;
-                    _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host in ALERT state, " + hostDesc,
-                                    "In availability zone " + host.getDataCenterId() + ", host is in alert state: " + host.getId() + "-" + host.getName());
-                } else {
+                } else if (determinedState != Status.Alert) {
                     // Unhandled determinedState returned by investigators!
                     final String msg = "Investigators returned unhandled host state of " + determinedState + " for: " + host.getId() + "-" + host.getName() + " - host will go to Alert state.";
                     s_logger.error(msg);
@@ -920,6 +913,15 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 s_logger.debug("The next status of agent " + host.getId() + " is not Alert, no need to investigate what happened");
             }
         }
+
+        // If here then we are in Alert Status
+        final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
+        final HostPodVO podVO = _podDao.findById(host.getPodId());
+        final String podName = podVO != null ? podVO.getName() : "NO POD";
+        final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podName;
+        _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host in ALERT state, " + hostDesc,
+                "In availability zone " + host.getDataCenterId() + ", host is in alert state: " + host.getId() + "-" + host.getName());
+
         handleDisconnectWithoutInvestigation(attache, event, true, true);
         host = _hostDao.findById(hostId); // Maybe the host magically reappeared?
         if (host != null && host.getStatus() == Status.Down) {
