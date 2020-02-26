@@ -1623,7 +1623,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                     final HostVO h = sc.find();
                     if (h != null) {
                         final ResourceState resourceState = h.getResourceState();
-                        if (resourceState == ResourceState.Disabled || resourceState == ResourceState.Maintenance || resourceState == ResourceState.ErrorInMaintenance) {
+                        if (resourceState == ResourceState.Disabled) {
                             /*
                              * Host is in non-operation state, so no investigation and direct put agent to Disconnected
                              */
