@@ -811,6 +811,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 } catch (final NoTransitionException e) {
                     final String err = "Cannot find next status for " + event + " as current status is " + currentStatus + " for agent " + hostId;
                     s_logger.debug(err);
+                    alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Error transitioning status for " + host.getName(), err);
                     throw new CloudRuntimeException(err);
                 }
 
