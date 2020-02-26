@@ -2278,7 +2278,7 @@ public class NfsSecondaryStorageResource extends ServerResourceBase implements S
             File tmpltParent = null;
             if (tmpltPath.exists() && tmpltPath.isDirectory()) {
                 tmpltParent = tmpltPath;
-            } else if (tmpltPath.getParentFile().matches(TemplateConstants.DEFAULT_TMPLT_ROOT_DIR + File.separator + DEFAULT_TMPLT_FIRST_LEVEL_DIR + "\d+$")) {
+            } else if (tmpltPath.getParentFile().matches(TemplateConstants.DEFAULT_TMPLT_ROOT_DIR + File.separator + DEFAULT_TMPLT_FIRST_LEVEL_DIR + "\\d+$")) {
                 // If we matched this, then we're not actually in the template directory, but rather in the parent directory for templates for this account
                 // The template directory therefore must not exist, so nothing to do
                 details = "template " + tmpltPath.getName() + " doesn't exist in secondary storage";
