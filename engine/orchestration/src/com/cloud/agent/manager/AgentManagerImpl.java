@@ -850,19 +850,19 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                  */
                 s_logger.debug("Caught exception while getting agent's next status", ne);
             }
-
             if (nextStatus == Status.Alert) {
                 /* OK, we are going to the bad status, let's see what happened */
                 s_logger.info("Investigating why host " + hostId + " has disconnected with event " + event);
 
                 Status determinedState = investigate(attache);
+                final lastPingSecs = (System.currentTimeMillis() >> 10) - host.getLastPinged();
                 // if state cannot be determined do nothing and bail out
                 if (determinedState == null) {
-                    if ((System.currentTimeMillis() >> 10) - host.getLastPinged() > AlertWait.value()) {
+                    if (lastPingSecs > AlertWait.value()) {
                         s_logger.warn("Agent " + hostId + " state cannot be determined for more than " + AlertWait.value() + " seconds, will go to Alert state");
                         determinedState = Status.Alert;
                     } else {
-                        s_logger.warn("Agent " + hostId + " state cannot be determined, do nothing");
+                        s_logger.warn("Agent " + hostId + " state cannot be determined, if host is not up within " + (AlertWait.value() - lastPingSecs) + " seconds, host will go to Alert state");
                         return false;
                     }
                 }
@@ -885,11 +885,11 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 } else if (determinedState == Status.Disconnected) {
                     s_logger.warn("Agent is disconnected but the host is still up: " + host.getId() + "-" + host.getName());
                     if (currentStatus == Status.Disconnected) {
-                        if ((System.currentTimeMillis() >> 10) - host.getLastPinged() > AlertWait.value()) {
-                            s_logger.warn("Host " + host.getId() + " has been disconnected past the wait time it should be disconnected. Waited" + ((System.currentTimeMillis() >> 10) - host.getLastPinged()));
+                        if (lastPingSecs > AlertWait.value()) {
+                            s_logger.warn("Host " + host.getId() + " has been disconnected for more than " + AlertWait.value() + " seconds, will go to Alert state");
                             event = Status.Event.WaitedTooLong;
                         } else {
-                            s_logger.debug("Host " + host.getId() + " has been determined to be disconnected but it hasn't passed the wait time yet.  Waited" + ((System.currentTimeMillis() >> 10) - host.getLastPinged()) + " of " + AlertWait.value() + " seconds");
+                            s_logger.debug("Host " + host.getId() + " is disconnected, if host is not up within " + (AlertWait.value() - lastPingSecs) + " seconds, host will go to Alert state");
                             return false;
                         }
                     } else if (currentStatus == Status.Up) {
@@ -898,7 +898,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                         final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName();
                         if (host.getType() != Host.Type.SecondaryStorage && host.getType() != Host.Type.ConsoleProxy) {
                             _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host disconnected, " + hostDesc,
-                                            "If the agent for host [" + hostDesc + "] is not restarted within " + AlertWait.value() + " seconds, host will go to Alert state");
+                                            "If the agent for host [" + hostDesc + "] is not restarted within " + (AlertWait.value() - lastPingSecs) + " seconds, host will go to Alert state");
                         }
                         agentStatusTransitTo(host, Status.Event.AgentUnreachable, _nodeId);
                         return false;
