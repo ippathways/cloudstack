@@ -886,10 +886,10 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                     s_logger.warn("Agent is disconnected but the host is still up: " + host.getId() + "-" + host.getName());
                     if (currentStatus == Status.Disconnected) {
                         if ((System.currentTimeMillis() >> 10) - host.getLastPinged() > AlertWait.value()) {
-                            s_logger.warn("Host " + host.getId() + " has been disconnected past the wait time it should be disconnected.");
+                            s_logger.warn("Host " + host.getId() + " has been disconnected past the wait time it should be disconnected. Waited" + ((System.currentTimeMillis() >> 10) - host.getLastPinged()));
                             event = Status.Event.WaitedTooLong;
                         } else {
-                            s_logger.debug("Host " + host.getId() + " has been determined to be disconnected but it hasn't passed the wait time yet.");
+                            s_logger.debug("Host " + host.getId() + " has been determined to be disconnected but it hasn't passed the wait time yet.  Waited" + ((System.currentTimeMillis() >> 10) - host.getLastPinged()) + " of " + AlertWait.value() + " seconds");
                             return false;
                         }
                     } else if (currentStatus == Status.Up) {
