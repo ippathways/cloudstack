@@ -221,7 +221,8 @@
           <excludes>
             <exclude>com/cloud/utils/testcase/*TestCase*</exclude>
             <exclude>com/cloud/utils/db/*Test*</exclude>
-          </excludes>
+            <exclude>utils/src/main/java/com/cloud/utils/nio/NioConnection.java</exclude>
+            </excludes>
         </configuration>
       </plugin>
     </plugins>
