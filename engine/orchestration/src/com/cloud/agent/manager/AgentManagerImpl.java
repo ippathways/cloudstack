@@ -855,7 +855,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 s_logger.info("Investigating why host " + hostId + " has disconnected with event " + event);
 
                 Status determinedState = investigate(attache);
-                final int lastPingSecs = (System.currentTimeMillis() >> 10) - host.getLastPinged();
+                final long lastPingSecs = (System.currentTimeMillis() >> 10) - host.getLastPinged();
                 // if state cannot be determined do nothing and bail out
                 if (determinedState == null) {
                     if (lastPingSecs > AlertWait.value()) {
