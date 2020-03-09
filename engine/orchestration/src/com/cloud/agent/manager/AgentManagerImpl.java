@@ -799,6 +799,12 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             s_logger.warn("Can't find host with " + hostId);
             nextStatus = Status.Removed;
         } else {
+            final ResourceState resourceState = host.getResourceState();
+            if (host.getType() == Host.Type.Routing && event == Event.ShutdownRequested && resourceState != ResourceState.Maintenance) {
+                s_logger.warn("Host " + host.getName() + " (id:" + host.getId() + ") has disconnected with event " + event + ",  but was in resource state " + resourceState + ", not in Maintenance.");
+                _alertMgr.sendAlert(AlertManager.AlertType.ALERT_TYPE_HOST, host.getDataCenterId(), host.getPodId(), "Host " + host.getName() + " has disconnected while not in Maintenance",
+                        "Host " + host.getName() + " (id:" + host.getId() + ") has disconnected with event " + event + ",  but was in resource state " + resourceState + ".  Host should be put into Maintenance before shutting down the host agent.");
+            }
             final Status currentStatus = host.getStatus();
             if (currentStatus == Status.Down || currentStatus == Status.Alert || currentStatus == Status.Removed) {
                 if (s_logger.isDebugEnabled()) {
