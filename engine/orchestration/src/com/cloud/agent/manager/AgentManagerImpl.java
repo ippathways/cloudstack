@@ -1617,7 +1617,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
             s_logger.info("PingMap for agent: " + agentId + " will not be updated because agent is no longer in the PingMap");
         }
         else {
-            s_logger_debug("Updated PingMap for agent: " + agentId + " with time in seconds of: " + InaccurateClock.getTimeInSeconds());
+            s_logger.debug("Updated PingMap for agent: " + agentId + " with time in seconds of: " + InaccurateClock.getTimeInSeconds());
         }
     }
 
