@@ -860,7 +860,9 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 /* OK, we are going to the bad status, let's see what happened */
                 s_logger.info("Investigating why host " + hostId + " has disconnected with event " + event);
 
+                final Status currentStatus = host.getStatus();
                 Status determinedState = investigate(attache);
+
                 final long lastPingSecs = (System.currentTimeMillis() >> 10) - host.getLastPinged();
                 // if state cannot be determined do nothing and bail out
                 if (determinedState == null) {
@@ -873,8 +875,13 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                     }
                 }
 
-                final Status currentStatus = host.getStatus();
                 s_logger.info("The agent from host " + hostId + " state determined is " + determinedState);
+
+                // Investigate can take so long that handleDisconnectWithInvestigation is called multiple times. Make sure we haven't already changed status
+                if (currentStatus != host.getStatus()) {
+                    s_logger.debug("Host " + host.getId() + " status changed from " + currentStatus + " to " + host.getStatus() + ", doing nothing");
+                    return false;
+                }
 
                 if (determinedState == Status.Down) {
                     final String message = "Host is down: " + host.getId() + "-" + host.getName();
