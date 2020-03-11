@@ -878,6 +878,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                 s_logger.info("The agent from host " + hostId + " state determined is " + determinedState);
 
                 // Investigate can take so long that handleDisconnectWithInvestigation is called multiple times. Make sure we haven't already changed status
+                host = _hostDao.findById(hostId);
                 if (currentStatus != host.getStatus()) {
                     s_logger.debug("Host " + host.getId() + " status changed from " + currentStatus + " to " + host.getStatus() + ", doing nothing");
                     return false;
