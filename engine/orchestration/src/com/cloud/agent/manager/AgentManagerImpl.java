@@ -898,7 +898,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                             s_logger.debug("Host " + host.getId() + " is disconnected, if host is not up within " + (AlertWait.value() - lastPingSecs) + " seconds, host will go to Alert state");
                             return false;
                         }
-                    } else if (currentStatus == Status.Up) {
+                    } else if (currentStatus == Status.Up && lastPingSecs < AlertWait.value()) {
                         final DataCenterVO dcVO = _dcDao.findById(host.getDataCenterId());
                         final HostPodVO podVO = _podDao.findById(host.getPodId());
                         final String hostDesc = "name: " + host.getName() + " (id:" + host.getId() + "), availability zone: " + dcVO.getName() + ", pod: " + podVO.getName();
@@ -1615,6 +1615,9 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
         // Update PingMap with the latest time if agent entry exists in the PingMap
         if (_pingMap.replace(agentId, InaccurateClock.getTimeInSeconds()) == null) {
             s_logger.info("PingMap for agent: " + agentId + " will not be updated because agent is no longer in the PingMap");
+        }
+        else {
+            s_logger_debug("Updated PingMap for agent: " + agentId + " with time in seconds of: " + InaccurateClock.getTimeInSeconds());
         }
     }
 
