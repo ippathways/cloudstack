@@ -538,10 +538,18 @@ class CsSite2SiteVpn(CsDataBag):
         vpnsecretsfile = "%s/ipsec.vpn-%s.secrets" % (self.VPNCONFDIR, rightpeer)
         ikepolicy = obj['ike_policy'].replace(';', '-')
         esppolicy = obj['esp_policy'].replace(';', '-')
+        splitconnections = obj['split_connections'] if 'split_connections' in obj else False
+        ikeversion = obj['ike_version'] if 'ike_version' in obj and obj['ike_version'].lower() in ('ike', 'ikev1', 'ikev2') else 'ike'
+
+        if splitconnections:
+            peerlistarr = peerlist.split(',')
+            logging.debug('Splitting rightsubnets %s' % peerlistarr)
+            peerlist = peerlistarr[0]
 
         if rightpeer in self.confips:
             self.confips.remove(rightpeer)
         file = CsFile(vpnconffile)
+        file.repopulate() # This avoids issues when switching off split_connections or removing subnets with split_connections == true
         file.add("#conn for vpn-%s" % rightpeer, 0)
         file.search("conn ", "conn vpn-%s" % rightpeer)
         file.addeq(" left=%s" % leftpeer)
@@ -550,7 +558,7 @@ class CsSite2SiteVpn(CsDataBag):
         file.addeq(" rightsubnet=%s" % peerlist)
         file.addeq(" type=tunnel")
         file.addeq(" authby=secret")
-        file.addeq(" keyexchange=ike")
+        file.addeq(" keyexchange=%s" % ikeversion)
         file.addeq(" ike=%s" % ikepolicy)
         file.addeq(" ikelifetime=%s" % self.convert_sec_to_h(obj['ike_lifetime']))
         file.addeq(" esp=%s" % esppolicy)
@@ -564,6 +572,15 @@ class CsSite2SiteVpn(CsDataBag):
             file.addeq(" dpddelay=30")
             file.addeq(" dpdtimeout=120")
             file.addeq(" dpdaction=restart")
+        if splitconnections and peerlistarr.count > 1:
+            logging.debug('Splitting connections for rightsubnets %s' % peerlistarr)
+            for peeridx in range(1, len(peerlistarr)):
+                logging.debug('Adding split connection -%d for subnet %s' % (peeridx + 1, peerlistarr[peeridx]))
+                file.add('')
+                file.search('conn vpn-.*-%d' % (peeridx + 1), "conn vpn-%s-%d" % (rightpeer, peeridx + 1))
+                file.append(' also=vpn-%s' % rightpeer)
+                file.append(' auto=route')
+                file.append(' rightsubnet=%s' % peerlistarr[peeridx])
         secret = CsFile(vpnsecretsfile)
         secret.search("%s " % leftpeer, "%s %s : PSK \"%s\"" % (leftpeer, rightpeer, obj['ipsec_psk']))
         if secret.is_changed() or file.is_changed():
