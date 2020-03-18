@@ -60,6 +60,8 @@ var dictionary = {
 "label.ESP.policy":"ESP policy",
 "label.import.backup.offering":"Import Backup Offering",
 "label.IKE.DH":"IKE DH",
+"label.IKE.version": "IKE Version",
+"label.IPsec.splitconnections": "Split Connections",
 "label.IKE.encryption":"IKE Encryption",
 "label.IKE.hash":"IKE Hash",
 "label.IKE.lifetime":"IKE lifetime (second)",

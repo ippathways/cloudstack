@@ -5960,6 +5960,28 @@
                                         }
                                     },
 
+                                    ikeversion: {
+                                        label: 'label.IKE.version',
+                                        docID: 'helpVPNGatewayIKEVersion',
+                                        select: function(args) {
+                                            var items = [];
+                                            items.push({
+                                                id: 'ike',
+                                                description: 'ike'
+                                            });
+                                            items.push({
+                                                id: 'ikev1',
+                                                description: 'ikev1'
+                                            });
+                                            items.push({
+                                                id: 'ikev2',
+                                                description: 'ikev2'
+                                            });
+                                            args.response.success({
+                                                data: items
+                                            });
+                                        }
+                                    },
                                     //IKE Policy
                                     ikeEncryption: {
                                         label: 'label.IKE.encryption',
@@ -6185,7 +6207,13 @@
                                     forceencap: {
                                         label: 'label.vpn.force.encapsulation',
                                         docID: 'helpVPNGatewayForceEncapsulation',
-                                        docID: 'helpVPNGatewayForceEncapsulation',
+                                        isBoolean: true,
+                                        isChecked: false
+                                    },
+
+                                    splitconnections: {
+                                        label: 'label.IPsec.splitconnections',
+                                        docID: 'helpVPNGatewaySplitConnections',
                                         isBoolean: true,
                                         isChecked: false
                                     }
@@ -6197,10 +6225,12 @@
                                     gateway: args.data.gateway,
                                     cidrlist: args.data.cidrlist,
                                     ipsecpsk: args.data.ipsecpsk,
+                                    ikeversion: args.data.ikeversion,
                                     ikelifetime: args.data.ikelifetime,
                                     esplifetime: args.data.esplifetime,
                                     dpd: (args.data.dpd == "on"),
-                                    forceencap: (args.data.forceencap == "on")
+                                    forceencap: (args.data.forceencap == "on"),
+                                    splitconnections: (args.data.splitconnections == "on")
                                 };
 
                                 var ikepolicy = args.data.ikeEncryption + '-' + args.data.ikeHash;
@@ -6254,10 +6284,12 @@
                                         gateway: args.data.gateway,
                                         cidrlist: args.data.cidrlist,
                                         ipsecpsk: args.data.ipsecpsk,
+                                        ikeversion: args.data.ikeversion,
                                         ikelifetime: args.data.ikelifetime,
                                         esplifetime: args.data.esplifetime,
                                         dpd: (args.data.dpd == "on"),
-                                        forceencap: (args.data.forceencap == "on")
+                                        forceencap: (args.data.forceencap == "on"),
+                                        splitconnections: (args.data.splitconnections == "on")
                                     };
 
                                     var ikepolicy = args.data.ikeEncryption + '-' + args.data.ikeHash;
@@ -6369,6 +6401,28 @@
                                         }
                                     },
 
+                                    ikeversion: {
+                                        label: 'label.IKE.version',
+                                        isEditable: true,
+                                        select: function(args) {
+                                            var items = [];
+                                            items.push({
+                                                id: 'ike',
+                                                description: 'ike'
+                                            });
+                                            items.push({
+                                                id: 'ikev1',
+                                                description: 'ikev1'
+                                            });
+                                            items.push({
+                                                id: 'ikev2',
+                                                description: 'ikev2'
+                                            });
+                                            args.response.success({
+                                                data: items
+                                            });
+                                        }
+                                    },
                                     //IKE Policy
                                     ikeEncryption: {
                                         label: 'label.IKE.encryption',
@@ -6531,6 +6585,13 @@
 
                                     forceencap: {
                                         label: 'label.vpn.force.encapsulation',
+                                        isBoolean: true,
+                                        isEditable: true,
+                                        converter: cloudStack.converters.toBooleanText
+                                    },
+
+                                    splitconnections: {
+                                        label: 'label.IPsec.splitconnections',
                                         isBoolean: true,
                                         isEditable: true,
                                         converter: cloudStack.converters.toBooleanText
