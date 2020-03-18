@@ -138,12 +138,13 @@ ipsec_tunnel_add() {
   [ "$op" == "-A" ] && ipsec_tunnel_del
 
   check_and_enable_iptables
+  rsubnetarr=(${rightnets})
 
   sudo echo "conn vpn-$rightpeer" > $vpnconffile &&
   sudo echo "  left=$leftpeer" >> $vpnconffile &&
   sudo echo "  leftsubnet=$leftnet" >> $vpnconffile &&
   sudo echo "  right=$rightpeer" >> $vpnconffile &&
-  sudo echo "  rightsubnets={$rightnets}" >> $vpnconffile &&
+  sudo echo "  rightsubnet=${rsubnetarr[0]}" >> $vpnconffile &&
   sudo echo "  type=tunnel" >> $vpnconffile &&
   sudo echo "  authby=secret" >> $vpnconffile &&
   sudo echo "  keyexchange=ike" >> $vpnconffile &&
@@ -162,6 +163,16 @@ ipsec_tunnel_add() {
       sudo echo "  dpdtimeout=120" >> $vpnconffile &&
       sudo echo "  dpdaction=restart" >> $vpnconffile
   fi
+
+  # Split out all but the first right subnet into their own statements
+  subnetidx=2
+  for rsubnet in ${rsubnetarr[@]:1}; do
+      sudo echo "" >> $vpnconffile &&
+      sudo echo "conn vpn-$rightpeer-$subnetidx" >> $vpnconffile &&
+      sudo echo "  also=vpn-$rightpeer" >> $vpnconffile &&
+      sudo echo "  rightsubnet=$rsubnet" >> $vpnconffile
+      ((++subnetidx))
+  done
 
   enable_iptables_subnets
 
