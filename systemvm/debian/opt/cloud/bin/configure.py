@@ -579,6 +579,7 @@ class CsSite2SiteVpn(CsDataBag):
                 file.add('')
                 file.search('conn vpn-.*-%d' % (peeridx + 1), "conn vpn-%s-%d" % (rightpeer, peeridx + 1))
                 file.append(' also=vpn-%s' % rightpeer)
+                file.append(' auto=route')
                 file.append(' rightsubnet=%s' % peerlistarr[peeridx])
         secret = CsFile(vpnsecretsfile)
         secret.search("%s " % leftpeer, "%s %s : PSK \"%s\"" % (leftpeer, rightpeer, obj['ipsec_psk']))

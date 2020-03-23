@@ -178,6 +178,7 @@ ipsec_tunnel_add() {
           sudo echo "" >> $vpnconffile &&
           sudo echo "conn vpn-$rightpeer-$subnetidx" >> $vpnconffile &&
           sudo echo "  also=vpn-$rightpeer" >> $vpnconffile &&
+          sudo echo "  auto=route" >> $vpnconffile &&
           sudo echo "  rightsubnet=$rsubnet" >> $vpnconffile
           ((++subnetidx))
       done
