@@ -156,11 +156,11 @@ public class Site2SiteCustomerGatewayResponse extends BaseResponse implements Co
 
     public void setEncap(Boolean encap) { this.encap = encap; }
 
-    public void setSplitConnections() {
+    public void setSplitConnections(Boolean splitConnections) {
         this.splitConnections = splitConnections;
     }
 
-    public void setIkeVersion() {
+    public void setIkeVersion(String ikeVersion) {
         this.ikeVersion = ikeVersion;
     }
 

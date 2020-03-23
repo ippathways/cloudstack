@@ -1091,11 +1091,11 @@ cloudStack.docs = {
         externalLink: ''
     },
     helpVPNGatewayIKEVersion: {
-        desc: 'Enter ike, ikev1, or ikev2 to specify which Internet Key Exchange (IKE) version to use for the key exchange. Using ike will negotiate the version.'
+        desc: 'Enter ike, ikev1, or ikev2 to specify which Internet Key Exchange (IKE) version to use for the key exchange. Using ike will negotiate the version.',
         externalLink: ''
     },
     helpVPNGatewayIKESplitConnections: {
-        desc: 'Typically for IKEv2, whether to use separate connection entries for peer subnets. Often used with Cisco some products'
+        desc: 'Typically for IKEv2, whether to use separate connection entries for peer subnets. Often used with Cisco some products',
         externalLink: ''
     },
     helpVPNGatewayIKEEncryption: {

@@ -208,11 +208,11 @@ public class Site2SiteVpnConnectionResponse extends BaseResponse implements Cont
         this.removed = removed;
     }
 
-    public void setSplitConnections() {
+    public void setSplitConnections(Boolean splitConnections) {
         this.splitConnections = splitConnections;
     }
 
-    public void setIkeVersion() {
+    public void setIkeVersion(String ikeVersion) {
         this.ikeVersion = ikeVersion;
     }
 
