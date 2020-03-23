@@ -229,10 +229,20 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
             throw new InvalidParameterValueException("The customer gateway with name " + name + " already existed!");
         }
 
+        Boolean splitConnections = cmd.getSplitConnections();
+        if (splitConnections == null) {
+            splitConnections = false;
+        }
+
+        String ikeVersion = cmd.getIkeVersion();
+        if (ikeVersion == null) {
+            ikeVersion = "ike";
+        }
+
         checkCustomerGatewayCidrList(peerCidrList);
 
         Site2SiteCustomerGatewayVO gw =
-            new Site2SiteCustomerGatewayVO(name, accountId, owner.getDomainId(), gatewayIp, peerCidrList, ipsecPsk, ikePolicy, espPolicy, ikeLifetime, espLifetime, dpd, encap);
+            new Site2SiteCustomerGatewayVO(name, accountId, owner.getDomainId(), gatewayIp, peerCidrList, ipsecPsk, ikePolicy, espPolicy, ikeLifetime, espLifetime, dpd, encap, splitConnections, ikeVersion);
         _customerGatewayDao.persist(gw);
         return gw;
     }
@@ -476,6 +486,16 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
             encap = false;
         }
 
+        Boolean splitConnections = cmd.getSplitConnections();
+        if (splitConnections == null) {
+            splitConnections = false;
+        }
+
+        String ikeVersion = cmd.getIkeVersion();
+        if (ikeVersion == null) {
+            ikeVersion = "ike";
+        }
+
         checkCustomerGatewayCidrList(guestCidrList);
 
         long accountId = gw.getAccountId();
@@ -494,6 +514,8 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
         gw.setEspLifetime(espLifetime);
         gw.setDpd(dpd);
         gw.setEncap(encap);
+        gw.setSplitConnections(splitConnections);
+        gw.setIkeVersion(ikeVersion);
         _customerGatewayDao.persist(gw);
         return gw;
     }
