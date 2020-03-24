@@ -57,7 +57,7 @@ var dictionary = {
     "label.ESP.policy": "ESP-Richtlinie",
     "label.IKE.DH": "IKE DH",
     "label.IKE.version": "IKE Ausführung",
-    "label.IKE.splitconnections": "IKE geteilte Verbindungen",
+    "label.VPN.splitconnections": "IKE geteilte Verbindungen",
     "label.IKE.encryption": "IKE-Verschlüsselung",
     "label.IKE.hash": "IKE-Prüfsumme",
     "label.IKE.lifetime": "IKE-Lebensdauer (Sekunde)",

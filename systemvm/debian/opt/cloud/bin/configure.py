@@ -541,8 +541,8 @@ class CsSite2SiteVpn(CsDataBag):
         splitconnections = obj['split_connections'] if 'split_connections' in obj else False
         ikeversion = obj['ike_version'] if 'ike_version' in obj and obj['ike_version'].lower() in ('ike', 'ikev1', 'ikev2') else 'ike'
 
+        peerlistarr = peerlist.split(',')
         if splitconnections:
-            peerlistarr = peerlist.split(',')
             logging.debug('Splitting rightsubnets %s' % peerlistarr)
             peerlist = peerlistarr[0]
 
@@ -576,10 +576,9 @@ class CsSite2SiteVpn(CsDataBag):
             logging.debug('Splitting connections for rightsubnets %s' % peerlistarr)
             for peeridx in range(1, len(peerlistarr)):
                 logging.debug('Adding split connection -%d for subnet %s' % (peeridx + 1, peerlistarr[peeridx]))
-                file.add('')
+                file.append('')
                 file.search('conn vpn-.*-%d' % (peeridx + 1), "conn vpn-%s-%d" % (rightpeer, peeridx + 1))
                 file.append(' also=vpn-%s' % rightpeer)
-                file.append(' auto=route')
                 file.append(' rightsubnet=%s' % peerlistarr[peeridx])
         secret = CsFile(vpnsecretsfile)
         secret.search("%s " % leftpeer, "%s %s : PSK \"%s\"" % (leftpeer, rightpeer, obj['ipsec_psk']))
@@ -594,14 +593,25 @@ class CsSite2SiteVpn(CsDataBag):
         os.chmod(vpnsecretsfile, 0400)
 
         for i in xrange(3):
-            result = CsHelper.execute('ipsec status vpn-%s | grep "%s"' % (rightpeer, peerlist.split(",", 1)[0]))
-            if len(result) > 0:
+            done = True
+            for peeridx in range(0, len(peerlistarr)):
+                # Check for the proper connection and subnet
+                conn = rightpeer if not splitconnections else rightpeer if peeridx == 0 else '%s-%d' % (rightpeer, peeridx + 1)
+                result = CsHelper.execute('ipsec status vpn-%s | grep "%s"' % (conn, peerlistarr[peeridx]))
+                # If any of the peers hasn't yet finished, continue the outer loop
+                if len(result) == 0:
+                    done = False
+            if done:
                 break
             time.sleep(1)
 
         # With 'auto=route', connections are established on an attempt to
         # communicate over the S2S VPN. This uses ping to initialize the connection.
-        CsHelper.execute("timeout 5 ping -c 3 %s" % (peerlist.split("/", 1)[0].replace(".0", ".1")))
+        for peer in peerlistarr:
+            octets = peer.split('/', 1).split('.')
+            octets[3] = str((int(octets[3]) + 1))
+            ipinsubnet = '.'.join(octets)
+            CsHelper.execute("timeout 5 ping -c 3 %s" % ipinsubnet)
 
     def convert_sec_to_h(self, val):
         hrs = int(val) / 3600

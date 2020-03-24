@@ -133,7 +133,7 @@ public class Site2SiteVpnConnectionResponse extends BaseResponse implements Cont
     private Boolean forDisplay;
 
     @SerializedName(ApiConstants.SPLIT_CONNECTIONS)
-    @Param(description = "For IKEv2, whether to split multiple right subnet cidrs into multiple connection statements.")
+    @Param(description = "Split multiple remote networks into multiple phase 2 SAs. Often used with Cisco some products.")
     private Boolean splitConnections;
 
     @SerializedName(ApiConstants.IKE_VERSION)

@@ -57,7 +57,7 @@ var dictionary = {
     "label.ESP.policy": "Política ESP",
     "label.IKE.DH": "DH IKE",
     "label.IKE.version": "Versão IKE",
-    "label.IKE.splitconnections": "Conexões Divididas IKE",
+    "label.VPN.splitconnections": "Conexões Divididas IKE",
     "label.IKE.encryption": "Encriptação IKE",
     "label.IKE.hash": "Hash IKE",
     "label.IKE.lifetime": "Tempo de vida IKE (segundos)",

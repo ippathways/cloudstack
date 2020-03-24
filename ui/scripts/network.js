@@ -6137,8 +6137,8 @@
                                     },
 
                                     splitconnections: {
-                                        label: 'label.IKE.splitconnections',
-                                        docID: 'helpVPNGatewayIKESplitConnections',
+                                        label: 'label.VPN.splitconnections',
+                                        docID: 'helpVPNGatewaySplitConnections',
                                         isBoolean: true,
                                         isChecked: false
                                     }
@@ -6516,7 +6516,7 @@
                                     },
 
                                     splitconnections: {
-                                        label: 'label.IKE.splitconnections',
+                                        label: 'label.VPN.splitconnections',
                                         isBoolean: true,
                                         isEditable: true,
                                         converter: cloudStack.converters.toBooleanText

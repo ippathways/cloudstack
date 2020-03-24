@@ -57,7 +57,7 @@ var dictionary = {
     "label.ESP.policy": "ESP 정책",
     "label.IKE.DH": "IKE DH",
     "label.IKE.version": "IKE 버전",
-    "label.IKE.splitconnections": "IKE 분할 연결",
+    "label.VPN.splitconnections": "IKE 분할 연결",
     "label.IKE.encryption": "IKE 암호화",
     "label.IKE.hash": "IKE 해시",
     "label.IKE.lifetime": "IKE 유효기간(초)",

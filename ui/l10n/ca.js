@@ -57,7 +57,7 @@ var dictionary = {
     "label.ESP.policy": "ESP policy",
     "label.IKE.DH": "IKE DH",
     "label.IKE.version": "IKE Version",
-    "label.IKE.splitconnections": "IKE Split Connections",
+    "label.VPN.splitconnections": "IKE Split Connections",
     "label.IKE.encryption": "IKE Encryption",
     "label.IKE.hash": "IKE Hash",
     "label.IKE.lifetime": "IKE lifetime (second)",

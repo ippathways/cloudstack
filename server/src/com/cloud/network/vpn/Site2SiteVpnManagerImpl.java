@@ -38,6 +38,7 @@ import org.apache.cloudstack.api.command.user.vpn.ListVpnGatewaysCmd;
 import org.apache.cloudstack.api.command.user.vpn.ResetVpnConnectionCmd;
 import org.apache.cloudstack.api.command.user.vpn.UpdateVpnCustomerGatewayCmd;
 import org.apache.cloudstack.context.CallContext;
+import org.apache.cloudstack.framework.config.ConfigKey;
 import org.apache.cloudstack.framework.config.dao.ConfigurationDao;
 
 import com.cloud.configuration.Config;
@@ -102,6 +103,8 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
     VpcManager _vpcMgr;
     @Inject
     AccountManager _accountMgr;
+
+    protected final ConfigKey<Boolean> SplitConnections = new ConfigKey<Boolean>("Advanced", Boolean.class, "site2site.vpn.customergateway.default.split.conn", "false", "Default for splitting multiple remote networks into multiple phase 2 SAs.", false);
 
     String _name;
     int _connLimit;
@@ -430,13 +433,14 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
         _accountMgr.checkAccess(caller, null, false, gw);
 
         List<Site2SiteVpnConnectionVO> conns = _vpnConnectionDao.listByCustomerGatewayId(id);
+        /* TODO gjg do we need this? it is annoying
         if (conns != null) {
             for (Site2SiteVpnConnection conn : conns) {
                 if (conn.getState() != State.Error) {
                     throw new InvalidParameterValueException("Unable to update customer gateway with connections in non-Error state!");
                 }
             }
-        }
+        } */
         String name = cmd.getName();
         String gatewayIp = cmd.getGatewayIp();
 
@@ -488,7 +492,7 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
 
         Boolean splitConnections = cmd.getSplitConnections();
         if (splitConnections == null) {
-            splitConnections = false;
+            splitConnections = SplitConnections.value();
         }
 
         String ikeVersion = cmd.getIkeVersion();
