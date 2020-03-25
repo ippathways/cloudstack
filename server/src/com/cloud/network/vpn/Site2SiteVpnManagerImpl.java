@@ -432,8 +432,8 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
         }
         _accountMgr.checkAccess(caller, null, false, gw);
 
-        List<Site2SiteVpnConnectionVO> conns = _vpnConnectionDao.listByCustomerGatewayId(id);
         /* TODO gjg do we need this? it is annoying
+        List<Site2SiteVpnConnectionVO> conns = _vpnConnectionDao.listByCustomerGatewayId(id);
         if (conns != null) {
             for (Site2SiteVpnConnection conn : conns) {
                 if (conn.getState() != State.Error) {
@@ -521,6 +521,30 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
         gw.setSplitConnections(splitConnections);
         gw.setIkeVersion(ikeVersion);
         _customerGatewayDao.persist(gw);
+
+        List<Site2SiteVpnConnectionVO> conns = _vpnConnectionDao.listByCustomerGatewayId(id);
+        if (conns != null) {
+            for (Site2SiteVpnConnection conn : conns) {
+                try {
+                    _accountMgr.checkAccess(caller, null, false, conn);
+                catch (PermissionDeniedException e) {
+                    // Just don't restart this connection, as the user has no rights to it
+                    // Maybe should issue a notification to the system?
+                    s_logger.info("Site2SiteVpnManager:updateCustomerGateway() Not resetting VPN connection " + conn.getId() + " as user lacks permission");
+                    continue;
+                }
+
+                if (conn.getState() == State.Pending) {
+                    // Vpn connection cannot be reset when the state is Pending
+                    continue;
+                }
+                if (conn.getState() == State.Connected || conn.getState() == State.Error) {
+                    stopVpnConnection(id);
+                }
+                startVpnConnection(id);
+            }
+        }
+
         return gw;
     }
 
