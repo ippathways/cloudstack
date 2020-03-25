@@ -46,6 +46,7 @@ import com.cloud.event.ActionEvent;
 import com.cloud.event.EventTypes;
 import com.cloud.exception.InvalidParameterValueException;
 import com.cloud.exception.NetworkRuleConflictException;
+import com.cloud.exception.PermissionDeniedException;
 import com.cloud.exception.ResourceUnavailableException;
 import com.cloud.network.Site2SiteCustomerGateway;
 import com.cloud.network.Site2SiteVpnConnection;
@@ -538,10 +539,15 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
                     // Vpn connection cannot be reset when the state is Pending
                     continue;
                 }
-                if (conn.getState() == State.Connected || conn.getState() == State.Error) {
-                    stopVpnConnection(id);
+                try {
+                    if (conn.getState() == State.Connected || conn.getState() == State.Error) {
+                        stopVpnConnection(id);
+                    }
+                    startVpnConnection(id);
+                } catch (ResourceUnavailableException e) {
+                    // Should never get here, as we are looping on the actual connections, but we must handle it regardless
+                    continue;
                 }
-                startVpnConnection(id);
             }
         }
 
