@@ -608,7 +608,7 @@ class CsSite2SiteVpn(CsDataBag):
         # With 'auto=route', connections are established on an attempt to
         # communicate over the S2S VPN. This uses ping to initialize the connection.
         for peer in peerlistarr:
-            octets = peer.split('/', 1).split('.')
+            octets = peer.split('/', 1)[0].split('.')
             octets[3] = str((int(octets[3]) + 1))
             ipinsubnet = '.'.join(octets)
             CsHelper.execute("timeout 5 ping -c 3 %s" % ipinsubnet)
