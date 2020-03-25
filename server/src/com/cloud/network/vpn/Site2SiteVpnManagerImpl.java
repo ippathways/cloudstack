@@ -527,7 +527,7 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
             for (Site2SiteVpnConnection conn : conns) {
                 try {
                     _accountMgr.checkAccess(caller, null, false, conn);
-                catch (PermissionDeniedException e) {
+                } catch (PermissionDeniedException e) {
                     // Just don't restart this connection, as the user has no rights to it
                     // Maybe should issue a notification to the system?
                     s_logger.info("Site2SiteVpnManager:updateCustomerGateway() Not resetting VPN connection " + conn.getId() + " as user lacks permission");
