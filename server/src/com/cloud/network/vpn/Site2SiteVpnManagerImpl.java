@@ -541,9 +541,9 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
                 }
                 try {
                     if (conn.getState() == State.Connected || conn.getState() == State.Error) {
-                        stopVpnConnection(id);
+                        stopVpnConnection(conn.getId());
                     }
-                    startVpnConnection(id);
+                    startVpnConnection(conn.getId());
                 } catch (ResourceUnavailableException e) {
                     // Should never get here, as we are looping on the actual connections, but we must handle it regardless
                     continue;
