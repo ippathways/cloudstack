@@ -239,6 +239,7 @@ public class XenserverSnapshotStrategy extends SnapshotStrategyBase {
     @Override
     public boolean deleteSnapshot(Long snapshotId) {
         SnapshotVO snapshotVO = snapshotDao.findById(snapshotId);
+        s_logger.info("In deleteSnapshot", new Exception());
 
         if (snapshotVO.getState() == Snapshot.State.Allocated) {
             snapshotDao.remove(snapshotId);
@@ -381,6 +382,7 @@ public class XenserverSnapshotStrategy extends SnapshotStrategyBase {
     @Override
     @DB
     public SnapshotInfo takeSnapshot(SnapshotInfo snapshot) {
+        s_logger.info("In takeSnapshot", new Exception());
         SnapshotInfo snapshotOnPrimary = null;
         Object payload = snapshot.getPayload();
         CreateSnapshotPayload createSnapshotPayload = null;
