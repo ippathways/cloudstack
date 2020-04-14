@@ -118,10 +118,14 @@ public final class LibvirtDeleteVMSnapshotCommandWrapper extends CommandWrapper<
         } finally {
             if (dm != null) {
                 // Make sure if the VM is paused, then resume it, in case we got an exception during our delete() and didn't have the chance before
-                dm = libvirtComputingResource.getDomain(conn, vmName);
-                state = dm.getInfo().state;
-                if (state == DomainInfo.DomainState.VIR_DOMAIN_PAUSED) {
-                    dm.resume();
+                try {
+                    dm = libvirtComputingResource.getDomain(conn, vmName);
+                    state = dm.getInfo().state;
+                    if (state == DomainInfo.DomainState.VIR_DOMAIN_PAUSED) {
+                        dm.resume();
+                    }
+                } catch (LibvirtException e) {
+                    s_logger.info("Failed to resume vm after delete snapshot " + cmd.getTarget().getSnapshotName() + " on vm: " + vmName + " return true : " + e);
                 }
 
                 try {
