@@ -51,6 +51,7 @@ public final class LibvirtDeleteVMSnapshotCommandWrapper extends CommandWrapper<
         final KVMStoragePoolManager storagePoolMgr = libvirtComputingResource.getStoragePoolMgr();
         Domain dm = null;
         DomainSnapshot snapshot = null;
+        DomainInfo.DomainState state = null;
         boolean didDelete = false;
         try {
             final LibvirtUtilitiesHelper libvirtUtilitiesHelper = libvirtComputingResource.getLibvirtUtilitiesHelper();
