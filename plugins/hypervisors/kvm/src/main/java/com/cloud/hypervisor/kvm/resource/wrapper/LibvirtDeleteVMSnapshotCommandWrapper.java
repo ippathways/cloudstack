@@ -54,9 +54,10 @@ public final class LibvirtDeleteVMSnapshotCommandWrapper extends CommandWrapper<
         DomainSnapshot snapshot = null;
         DomainInfo.DomainState state = null;
         boolean didDelete = false;
+        Connect conn = null;
         try {
             final LibvirtUtilitiesHelper libvirtUtilitiesHelper = libvirtComputingResource.getLibvirtUtilitiesHelper();
-            Connect conn = libvirtUtilitiesHelper.getConnection();
+            conn = libvirtUtilitiesHelper.getConnection();
             dm = libvirtComputingResource.getDomain(conn, vmName);
 
             snapshot = dm.snapshotLookupByName(cmd.getTarget().getSnapshotName());
