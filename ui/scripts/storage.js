@@ -2578,7 +2578,7 @@
                                 },
                                 createForm: {
                                     title: 'label.action.take.snapshot',
-                                    desc: 'message.action.take.snapshot',
+                                    desc: 'message.action.snapshot.fromsnapshot',
                                     fields: {
                                         name: {
                                             label: 'label.name',

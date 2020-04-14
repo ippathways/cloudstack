@@ -1008,7 +1008,7 @@ public class KVMStorageProcessor implements StorageProcessor {
                         try {
                             vm.suspend();
                         } catch(final Exception e) {
-                            s_logger.debug("Failed to suspend the VM: " + e);
+                            s_logger.error("Failed to suspend the VM: " + e);
                             throw e;
                         }
                         snap.delete(0);
@@ -1028,7 +1028,7 @@ public class KVMStorageProcessor implements StorageProcessor {
                         }
                     }
                 } catch (final Exception ex) {
-                    s_logger.debug("Failed to delete snapshots on primary", ex);
+                    s_logger.error("Failed to delete snapshots on primary", ex);
                 }
             }
 
