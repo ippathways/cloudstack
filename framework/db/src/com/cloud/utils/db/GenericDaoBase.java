@@ -1334,13 +1334,6 @@ public abstract class GenericDaoBase<T, ID extends Serializable> extends Compone
         return new Pair<List<T>, Integer>(objects, count);
     }
 
-    @DB()
-    public Pair<List<T>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<T> sc, final Filter filter, final String[] distinctColumns) {
-        List<T> objects = searchIncludingRemoved(sc, filter, null, false);
-        Integer count = getDistinctCount(sc, distinctColumns);
-        return new Pair<List<T>, Integer>(objects, count);
-    }
-
     @Override
     @DB()
     public List<T> search(final SearchCriteria<T> sc, final Filter filter, final boolean enableQueryCache) {
