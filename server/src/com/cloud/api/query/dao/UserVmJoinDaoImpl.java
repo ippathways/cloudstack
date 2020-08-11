@@ -51,7 +51,9 @@ import com.cloud.user.dao.UserDao;
 import com.cloud.uservm.UserVm;
 import com.cloud.utils.db.SearchBuilder;
 import com.cloud.utils.db.SearchCriteria;
+import com.cloud.utils.db.Filter;
 import com.cloud.utils.net.Dhcp;
+import com.cloud.utils.Pair;
 import com.cloud.vm.UserVmDetailVO;
 import com.cloud.vm.VirtualMachine.State;
 import com.cloud.vm.VmStats;
@@ -502,10 +504,10 @@ public class UserVmJoinDaoImpl extends GenericDaoBaseWithTagInformation<UserVmJo
     }
 
     @Override
-    public Pair<List<T>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<T> sc, final Filter filter, final String[] distinctColumns) {
-        List<T> objects = searchIncludingRemoved(sc, filter, null, false);
+    public Pair<List<UserVmJoinVO>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<UserVmJoinVO> sc, final Filter filter, final String[] distinctColumns) {
+        List<UserVmJoinVO> objects = searchIncludingRemoved(sc, filter, null, false);
         Integer count = getDistinctCount(sc, distinctColumns);
-        return new Pair<List<T>, Integer>(objects, count);
+        return new Pair<List<UserVmJoinVO>, Integer>(objects, count);
     }
 
 }

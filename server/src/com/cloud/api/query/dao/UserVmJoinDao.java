@@ -28,6 +28,8 @@ import com.cloud.user.Account;
 import com.cloud.uservm.UserVm;
 import com.cloud.utils.db.GenericDao;
 import com.cloud.utils.db.SearchCriteria;
+import com.cloud.utils.Pair;
+import com.cloud.utils.db.Filter;
 
 public interface UserVmJoinDao extends GenericDao<UserVmJoinVO, Long> {
 
@@ -41,5 +43,5 @@ public interface UserVmJoinDao extends GenericDao<UserVmJoinVO, Long> {
 
     List<UserVmJoinVO> listActiveByIsoId(Long isoId);
 
-    Pair<List<T>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<T> sc, final Filter filter, final String[] distinctColumns);
+    Pair<List<UserVmJoinVO>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<UserVmJoinVO> sc, final Filter filter, final String[] distinctColumns);
 }
