@@ -43,5 +43,5 @@ public interface UserVmJoinDao extends GenericDao<UserVmJoinVO, Long> {
 
     List<UserVmJoinVO> listActiveByIsoId(Long isoId);
 
-    Pair<List<UserVmJoinVO>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<UserVmJoinVO> sc, final Filter filter, final String[] distinctColumns);
+    Pair<List<UserVmJoinVO>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<UserVmJoinVO> sc, final Filter filter);
 }
