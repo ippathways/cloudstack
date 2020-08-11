@@ -999,7 +999,7 @@ public class QueryManagerImpl extends MutualExclusiveIdsManagerBase implements Q
         }
         // search vm details by ids
         Pair<List<UserVmJoinVO>, Integer> uniqueVmPair = null;
-        if (cmd.getIncludeRemoved()) {
+        if (cmd.getShowRemoved()) {
             uniqueVmPair = _userVmJoinDao.searchAndDistinctCountIncludingRemoved(sc, searchFilter);
         }
         else {
