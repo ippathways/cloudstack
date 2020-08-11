@@ -133,6 +133,9 @@ public class ListVMsCmd extends BaseListTaggedResourcesCmd {
     @Parameter(name = ApiConstants.USER_ID, type = CommandType.UUID, entityType = UserResponse.class, required = false, description = "the user ID that created the VM and is under the account that owns the VM")
     private Long userId;
 
+    @Parameter(name = ApiConstants.INCLUDE_REMOVED, type = CommandType.BOOLEAN, description = "Include removed VMs")
+    private Boolean includeRemoved;
+
     /////////////////////////////////////////////////////
     /////////////////// Accessors ///////////////////////
     /////////////////////////////////////////////////////
@@ -224,6 +227,14 @@ public class ListVMsCmd extends BaseListTaggedResourcesCmd {
         }
         return super.getDisplay();
     }
+
+    public Boolean getIncludeRemoved() {
+        if (includeRemoved != null) {
+            return includeRemoved;
+        }
+        return false;
+    }
+
     /////////////////////////////////////////////////////
     /////////////// API Implementation///////////////////
     /////////////////////////////////////////////////////

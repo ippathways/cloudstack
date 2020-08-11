@@ -998,7 +998,13 @@ public class QueryManagerImpl extends MutualExclusiveIdsManagerBase implements Q
             sc.setParameters("displayVm", 1);
         }
         // search vm details by ids
-        Pair<List<UserVmJoinVO>, Integer> uniqueVmPair = _userVmJoinDao.searchAndDistinctCount(sc, searchFilter);
+        Pair<List<UserVmJoinVO>, Integer> uniqueVmPair = null;
+        if (cmd.getIncludeRemoved()) {
+            uniqueVmPair = _userVmJoinDao.searchAndDistinctCountIncludingRemoved(sc, searchFilter);
+        }
+        else {
+            uniqueVmPair = _userVmJoinDao.searchAndDistinctCount(sc, searchFilter);
+        }
         Integer count = uniqueVmPair.second();
         if (count.intValue() == 0) {
             // handle empty result cases
