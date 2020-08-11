@@ -27,6 +27,7 @@ import com.cloud.api.query.vo.UserVmJoinVO;
 import com.cloud.user.Account;
 import com.cloud.uservm.UserVm;
 import com.cloud.utils.db.GenericDao;
+import com.cloud.utils.db.SearchCriteria;
 
 public interface UserVmJoinDao extends GenericDao<UserVmJoinVO, Long> {
 
