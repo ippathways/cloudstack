@@ -504,9 +504,9 @@ public class UserVmJoinDaoImpl extends GenericDaoBaseWithTagInformation<UserVmJo
     }
 
     @Override
-    public Pair<List<UserVmJoinVO>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<UserVmJoinVO> sc, final Filter filter, final String[] distinctColumns) {
+    public Pair<List<UserVmJoinVO>, Integer> searchAndDistinctCountIncludingRemoved(final SearchCriteria<UserVmJoinVO> sc, final Filter filter) {
         List<UserVmJoinVO> objects = searchIncludingRemoved(sc, filter, null, false);
-        Integer count = getDistinctCount(sc, distinctColumns);
+        Integer count = getDistinctCount(sc);
         return new Pair<List<UserVmJoinVO>, Integer>(objects, count);
     }
 
