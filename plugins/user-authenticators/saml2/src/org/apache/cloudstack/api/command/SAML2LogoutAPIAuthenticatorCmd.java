@@ -130,6 +130,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         }
 
         String idpId = (String) session.getAttribute(SAMLPluginConstants.SAML_IDPID);
+        SAMLProviderMetadata spMetadata = _samlAuthManager.getSPMetadata();
         SAMLProviderMetadata idpMetadata = _samlAuthManager.getIdPMetadata(idpId);
         String nameId = (String) session.getAttribute(SAMLPluginConstants.SAML_NAMEID);
         if (idpMetadata == null || nameId == null || nameId.isEmpty()) {
