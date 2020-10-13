@@ -33,7 +33,7 @@ import org.apache.cloudstack.saml.SAMLProviderMetadata;
 import org.apache.cloudstack.saml.SAMLUtils;
 import org.apache.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.core.LogoutRequest;
+// import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.ConfigurationException;
