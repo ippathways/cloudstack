@@ -145,7 +145,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         try {
             String redirectUrl = SAMLUtils.buildLogoutRequestUrl(nameId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value());
             resp.sendRedirect(redirectUrl);
-        } catch (MarshallingException | IOException e) {
+        } catch (IOException e) {
             s_logger.error("SAML SLO error: " + e.getMessage());
             throw new ServerApiException(ApiErrorCode.ACCOUNT_ERROR, _apiServer.getSerializedApiError(ApiErrorCode.ACCOUNT_ERROR.getHttpCode(),
                     "SAML Single Logout Error",
