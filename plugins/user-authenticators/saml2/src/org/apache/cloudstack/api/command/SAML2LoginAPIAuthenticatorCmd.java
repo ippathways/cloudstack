@@ -246,20 +246,25 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                             spMetadata.getKeyPair().getPrivate());
                     StaticKeyInfoCredentialResolver keyInfoResolver = new StaticKeyInfoCredentialResolver(credential);
                     EncryptedKeyResolver keyResolver = new InlineEncryptedKeyResolver();
+                    s_logger.info("SAML Checking for encryptedAssertions");
                     Decrypter decrypter = new Decrypter(null, keyInfoResolver, keyResolver);
                     decrypter.setRootInNewDocument(true);
                     List<EncryptedAssertion> encryptedAssertions = processedSAMLResponse.getEncryptedAssertions();
                     if (encryptedAssertions != null) {
+                        s_logger.info("SAML Found " + encryptedAssertions.size() + "encrypted assertions");
                         for (EncryptedAssertion encryptedAssertion : encryptedAssertions) {
                             Assertion assertion = null;
                             try {
+                                s_logger.info("SAML performing decryption of assertion");
                                 assertion = decrypter.decrypt(encryptedAssertion);
                             } catch (DecryptionException e) {
                                 s_logger.warn("SAML EncryptedAssertion error: " + e.toString());
                             }
                             if (assertion == null) {
+                                s_logger.warn("SAML assertion is NULL after decryption");
                                 continue;
                             }
+                            s_logger.info("SAML assertion is NOT NULL after decryption");
                             Signature encSig = assertion.getSignature();
                             if (idpMetadata.getSigningCertificate() != null && encSig != null) {
                                 BasicX509Credential sigCredential = new BasicX509Credential();
@@ -279,6 +284,11 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                             }
                             if (username == null) {
                                 username = SAMLUtils.getValueFromAttributeStatements(assertion.getAttributeStatements(), SAML2AuthManager.SAMLUserAttributeName.value());
+                                if (username == null) {
+                                    s_logger.info("SAML username is still NULL after attempting to get value from decrypted assertion");
+                                } else {
+                                    s_logger.info("SAML username changed from NULL to " + username);
+                                }
                             }
                         }
                     }
