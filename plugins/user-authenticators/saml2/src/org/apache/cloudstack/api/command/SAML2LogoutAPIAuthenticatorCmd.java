@@ -37,7 +37,7 @@ import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.io.MarshallingException;
+// import org.opensaml.xml.io.MarshallingException;
 import org.opensaml.xml.io.UnmarshallingException;
 import org.xml.sax.SAXException;
 
