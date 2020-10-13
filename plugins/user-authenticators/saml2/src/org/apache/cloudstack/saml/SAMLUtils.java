@@ -191,6 +191,23 @@ public class SAMLUtils {
         return authnRequest;
     }
 
+
+    public static String buildLogoutRequestUrl(final String nameId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm) {
+        String redirectUrl = "";
+        try {
+            DefaultBootstrap.bootstrap();
+            LogoutRequest logoutRequest = SAMLUtils.buildLogoutRequest(idpMetadata.getSloUrl(), spMetadata.getEntityId(), nameId);
+            PrivateKey privateKey = null;
+            if (spMetadata.getKeyPair() != null) {
+                privateKey = spMetadata.getKeyPair().getPrivate();
+            }
+            redirectUrl = idpMetadata.getSloUrl() + "?" + SAMLUtils.generateSAMLRequestSignature("SAMLRequest=" + SAMLUtils.encodeSAMLRequest(logoutRequeset), privateKey, signatureAlgorithm);
+        } catch (ConfigurationException | FactoryConfigurationError | MarshallingException | IOException | NoSuchAlgorithmException | InvalidKeyException | java.security.SignatureException e) {
+            s_logger.error("SAML LogoutRequest message building error: " + e.getMessage());
+        }
+        return redirectUrl;
+    }
+
     public static LogoutRequest buildLogoutRequest(String logoutUrl, String spId, String nameIdString) {
         Issuer issuer = new IssuerBuilder().buildObject();
         issuer.setValue(spId);

@@ -140,10 +140,9 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
             }
             return responseString;
         }
-        LogoutRequest logoutRequest = SAMLUtils.buildLogoutRequest(idpMetadata.getSloUrl(), _samlAuthManager.getSPMetadata().getEntityId(), nameId);
 
         try {
-            String redirectUrl = idpMetadata.getSloUrl() + "?SAMLRequest=" + SAMLUtils.encodeSAMLRequest(logoutRequest);
+            String redirectUrl = SAMLUtils.buildLogoutRequestUrl(nameId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value());
             resp.sendRedirect(redirectUrl);
         } catch (MarshallingException | IOException e) {
             s_logger.error("SAML SLO error: " + e.getMessage());
