@@ -239,7 +239,18 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         break;
                     }
                 }
-
+                if (idpMetadata.getEncryptionCertificate() == null) {
+                    s_logger.debug("idpMetadata.getEncryptionCertificate is null");
+                }
+                if (spMetadata == null) {
+                    s_logger.debug("spMetadata is null");
+                }
+                if (spMetadata.getKeyPair() == null) {
+                    s_logger.debug("spMetadata.getKeyPair is null");
+                }
+                if (spMetadata.getKeyPair().getPrivate() == null) {
+                    s_logger.debug("spMetadata.getKeyPair().getPrivate() is null");
+                }
                 if (idpMetadata.getEncryptionCertificate() != null && spMetadata != null
                         && spMetadata.getKeyPair() != null && spMetadata.getKeyPair().getPrivate() != null) {
                     Credential credential = SecurityHelper.getSimpleCredential(idpMetadata.getEncryptionCertificate().getPublicKey(),
