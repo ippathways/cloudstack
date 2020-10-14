@@ -33,11 +33,11 @@ import org.apache.cloudstack.saml.SAMLProviderMetadata;
 import org.apache.cloudstack.saml.SAMLUtils;
 import org.apache.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.core.LogoutRequest;
+// import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.io.MarshallingException;
+// import org.opensaml.xml.io.MarshallingException;
 import org.opensaml.xml.io.UnmarshallingException;
 import org.xml.sax.SAXException;
 
@@ -130,6 +130,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         }
 
         String idpId = (String) session.getAttribute(SAMLPluginConstants.SAML_IDPID);
+        SAMLProviderMetadata spMetadata = _samlAuthManager.getSPMetadata();
         SAMLProviderMetadata idpMetadata = _samlAuthManager.getIdPMetadata(idpId);
         String nameId = (String) session.getAttribute(SAMLPluginConstants.SAML_NAMEID);
         if (idpMetadata == null || nameId == null || nameId.isEmpty()) {
@@ -140,12 +141,11 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
             }
             return responseString;
         }
-        LogoutRequest logoutRequest = SAMLUtils.buildLogoutRequest(idpMetadata.getSloUrl(), _samlAuthManager.getSPMetadata().getEntityId(), nameId);
 
         try {
-            String redirectUrl = idpMetadata.getSloUrl() + "?SAMLRequest=" + SAMLUtils.encodeSAMLRequest(logoutRequest);
+            String redirectUrl = SAMLUtils.buildLogoutRequestUrl(nameId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value());
             resp.sendRedirect(redirectUrl);
-        } catch (MarshallingException | IOException e) {
+        } catch (IOException e) {
             s_logger.error("SAML SLO error: " + e.getMessage());
             throw new ServerApiException(ApiErrorCode.ACCOUNT_ERROR, _apiServer.getSerializedApiError(ApiErrorCode.ACCOUNT_ERROR.getHttpCode(),
                     "SAML Single Logout Error",
