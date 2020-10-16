@@ -367,7 +367,7 @@ public class SAMLUtils {
         String pathPrefix = req.getScheme() + "://" + req.getServerName();
         if (req.getScheme() == "http" && req.getServerPort() != 80 || req.getScheme() == "https" && req.getServerPort() != 443) {
             pathPrefix += ":" + req.getServerPort();
-        }a
+        }
         s_logger.debug("SAML relativeUrlToFullUrl: reqScheme= " + req.getScheme() + "; reqServerName= " + req.getServerName() + "; reqServerPort= " + req.getServerPort() + ".  Final Uri= " + pathPrefix + relativeUrl);
         return pathPrefix + relativeUrl;
     }
