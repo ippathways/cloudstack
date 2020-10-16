@@ -48,6 +48,7 @@ import java.util.zip.DeflaterOutputStream;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -363,7 +364,7 @@ public class SAMLUtils {
     }
 
     public static String relativeUrlToFullUrl(String relativeUrl, final HttpServletRequest req) {
-        final String pathPrefix = req.getScheme() + "://" + req.getServerName();
+        String pathPrefix = req.getScheme() + "://" + req.getServerName();
         if (req.getScheme() == "http" && req.getServerPort != "80" || req.getScheme() == "https" && req.getServerPort() != "443") {
             pathPrefix += ":" + req.getServerPort();
         }
