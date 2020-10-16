@@ -175,7 +175,17 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                 String authnId = SAMLUtils.generateSecureRandomId();
                 _samlAuthManager.saveToken(authnId, domainPath, idpMetadata.getEntityId());
                 s_logger.debug("Sending SAMLRequest id=" + authnId);
-                String redirectUrl = SAMLUtils.buildAuthnRequestUrl(authnId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value());
+                //s_logger.debug("SAML spMetadata.getSsoUrl()= " + spMetadata.getSsoUrl());
+                //if (spMetadata.getSsoUrl().startsWith("/")) {
+                //    s_logger.debug("SAML spMetadata.getSsoUrl starts with a / (updating)");
+                //    final relativeSsoUrl = spMetadata.getSsoUrl();
+                //    spMetadata.setSsoUrl(SAMLUtils.relativeUrlToFullUrl(spMetadata.getSsoUrl(),req));
+                //}
+                //s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spMetadata.getSsoUrl());
+                String redirectUrl = SAMLUtils.buildAuthnRequestUrl(authnId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value(), req);
+                //spMetadata.setSsoUrl(relativeSsoUrl);
+                //s_logger.debug("SAML spMetadata.getSsoUrl() changed back to = " + spMetadata.getSsoUrl());
+                s_logger.debug("SAML Redirecting to: " + redirectUrl);
                 resp.sendRedirect(redirectUrl);
                 return "";
             } if (params.containsKey("SAMLart")) {
@@ -313,7 +323,12 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         LoginCmdResponse loginResponse = (LoginCmdResponse) _apiServer.loginUser(session, userAccount.getUsername(), userAccount.getUsername() + userAccount.getSource().toString(),
                                 userAccount.getDomainId(), null, remoteAddress, params);
                         SAMLUtils.setupSamlUserCookies(loginResponse, resp);
-                        resp.sendRedirect(SAML2AuthManager.SAMLCloudStackRedirectionUrl.value());
+                        String redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
+                        if (redirectUrl.startsWith("/")) {
+                            redirectUrl = SAMLUtils.relativeToAbsoluteUrl(redirectUrl, req);
+                        }
+                        redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
+                        resp.sendRedirect(redirectUrl);
                         return ApiResponseSerializer.toSerializedString(loginResponse, responseType);
                     }
                 } catch (CloudAuthenticationException | IOException exception) {
