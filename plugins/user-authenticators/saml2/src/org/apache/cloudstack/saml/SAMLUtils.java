@@ -368,7 +368,7 @@ public class SAMLUtils {
         if (req.getScheme() == "http" && req.getServerPort() != 80 || req.getScheme() == "https" && req.getServerPort() != 443) {
             pathPrefix += ":" + req.getServerPort();
         }
-        s_logger.debug("SAML relativeUrlToFullUrl: reqScheme= " + req.getScheme() + "; reqServerName= " + req.getServerName() + "; reqServerPort= " + req.getServerPort() + ".  Final Uri= " + pathPrefix + relativeUrl);
+        s_logger.error("SAML relativeUrlToFullUrl: reqScheme= " + req.getScheme() + "; reqServerName= " + req.getServerName() + "; reqServerPort= " + req.getServerPort() + ".  Final Uri= " + pathPrefix + relativeUrl);
         return pathPrefix + relativeUrl;
     }
 }
