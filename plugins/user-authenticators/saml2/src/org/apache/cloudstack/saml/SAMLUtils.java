@@ -361,4 +361,12 @@ public class SAMLUtils {
                 "CN=ApacheCloudStack", "CN=ApacheCloudStack",
                 3, "SHA256WithRSA");
     }
+
+    public static String relativeUrlToFullUrl(String relativeUrl, final HttpServletRequest req) {
+        final String pathPrefix = req.getScheme() + "://" + req.getServerName(); 
+        if (req.getScheme() == "http" && req.getServerPort != "80" || req.getScheme() == "https" && req.getServerPort() != "443") {
+            pathPrefix += ":" + req.getServerPort();
+        }
+        return pathPrefix + relativeUrl;
+    }
 }
