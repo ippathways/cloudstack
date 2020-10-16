@@ -363,9 +363,9 @@ public class SAMLUtils {
                 3, "SHA256WithRSA");
     }
 
-    public static String relativeUrlToFullUrl(String relativeUrl, final HttpServletRequest req) {
+    public static String relativeUrlToFullUrl(final String relativeUrl, final HttpServletRequest req) {
         String pathPrefix = req.getScheme() + "://" + req.getServerName();
-        if (req.getScheme() == "http" && req.getServerPort != "80" || req.getScheme() == "https" && req.getServerPort() != "443") {
+        if (req.getScheme() == "http" && req.getServerPort() != 80 || req.getScheme() == "https" && req.getServerPort() != 443) {
             pathPrefix += ":" + req.getServerPort();
         }
         return pathPrefix + relativeUrl;

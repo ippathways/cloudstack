@@ -176,7 +176,7 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                 _samlAuthManager.saveToken(authnId, domainPath, idpMetadata.getEntityId());
                 s_logger.debug("Sending SAMLRequest id=" + authnId);
                 if (spMetadata.getSsoUrl().startsWith("/")) {
-                    spMetadata.setSsoUrl(SAMLUtils.relativeUrltoFullUrl(spMetadata.getSsoUrl(),req));
+                    spMetadata.setSsoUrl(SAMLUtils.relativeUrlToFullUrl(spMetadata.getSsoUrl(),req));
                 }
                 String redirectUrl = SAMLUtils.buildAuthnRequestUrl(authnId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value());
 
@@ -319,7 +319,7 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         SAMLUtils.setupSamlUserCookies(loginResponse, resp);
                         String redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
                         if (redirectUrl.startsWith("/")) {
-                            redirectUrl = SAMLUtils.relativeUrltoFullUrl(redirectUrl ,req);
+                            redirectUrl = SAMLUtils.relativeUrlToFullUrl(redirectUrl, req);
                         }
                         resp.sendRedirect(redirectUrl);
                         return ApiResponseSerializer.toSerializedString(loginResponse, responseType);
