@@ -48,6 +48,7 @@ import java.util.zip.DeflaterOutputStream;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -96,6 +97,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.cloud.utils.HttpUtils;
+import com.google.common.base.Strings;
 
 public class SAMLUtils {
     public static final Logger s_logger = Logger.getLogger(SAMLUtils.class);
@@ -138,11 +140,18 @@ public class SAMLUtils {
         return null;
     }
 
-    public static String buildAuthnRequestUrl(final String authnId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm) {
+    public static String buildAuthnRequestUrl(final String authnId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm, final HttpServletRequest req) {
         String redirectUrl = "";
         try {
             DefaultBootstrap.bootstrap();
-            AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spMetadata.getSsoUrl());
+            s_logger.debug("SAML spMetadata.getSsoUrl()= " + spMetadata.getSsoUrl());
+            String spSsoUrl = spMetadata.getSsoUrl();
+            if (spSsoUrl.startsWith("/")) {
+                s_logger.debug("SAML spMetadata.getSsoUrl starts with a / (updating)");
+                spSsoUrl = relativeToAbsoluteUrl(spSsoUrl,req);
+                s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spSsoUrl);
+            }
+            AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spSsoUrl);
             PrivateKey privateKey = null;
             if (spMetadata.getKeyPair() != null) {
                 privateKey = spMetadata.getKeyPair().getPrivate();
@@ -191,7 +200,24 @@ public class SAMLUtils {
         return authnRequest;
     }
 
-    public static LogoutRequest buildLogoutRequest(String logoutUrl, String spId, String nameIdString) {
+
+    public static String buildLogoutRequestUrl(final String nameId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm) {
+        String redirectUrl = "";
+        try {
+            DefaultBootstrap.bootstrap();
+            LogoutRequest logoutRequest = SAMLUtils.buildLogoutRequestObject(idpMetadata.getSloUrl(), spMetadata.getEntityId(), nameId);
+            PrivateKey privateKey = null;
+            if (spMetadata.getKeyPair() != null) {
+                privateKey = spMetadata.getKeyPair().getPrivate();
+            }
+            redirectUrl = idpMetadata.getSloUrl() + "?" + SAMLUtils.generateSAMLRequestSignature("SAMLRequest=" + SAMLUtils.encodeSAMLRequest(logoutRequest), privateKey, signatureAlgorithm);
+        } catch (ConfigurationException | FactoryConfigurationError | MarshallingException | IOException | NoSuchAlgorithmException | InvalidKeyException | java.security.SignatureException e) {
+            s_logger.error("SAML LogoutRequest message building error: " + e.getMessage());
+        }
+        return redirectUrl;
+    }
+
+    public static LogoutRequest buildLogoutRequestObject(String logoutUrl, String spId, String nameIdString) {
         Issuer issuer = new IssuerBuilder().buildObject();
         issuer.setValue(spId);
         NameID nameID = new NameIDBuilder().buildObject();
@@ -360,5 +386,26 @@ public class SAMLUtils {
         return CertUtils.generateV1Certificate(keyPair,
                 "CN=ApacheCloudStack", "CN=ApacheCloudStack",
                 3, "SHA256WithRSA");
+    }
+
+    public static String relativeToAbsoluteUrl(final String relativeUrl, final HttpServletRequest req) {
+        String scheme = null;
+        Integer port = null;
+
+        try {
+            scheme = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Proto"))) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
+            port = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Port"))) ? Integer.parseInt(req.getHeader("X-Forwarded-Port")) : req.getServerPort();
+        } catch (final Exception ex) {
+            s_logger.error("Exception determining URL scheme or port.  Defaulting to request variables.", ex);
+            scheme = (!Strings.isNullOrEmpty(scheme)) ? scheme : req.getScheme();
+            port = (port != null) ? port : req.getServerPort();
+        }
+        String absoluteUrl = scheme + "://" + req.getServerName();
+        if (scheme == "http" &&  port != 80 || scheme == "https" && port != 443) {
+            absoluteUrl += ":" + req.getServerPort();
+        }
+        absoluteUrl += relativeUrl;
+        s_logger.debug("SAML relativeToAbsoluteUrl: " + relativeUrl + " -> " + absoluteUrl);
+        return absoluteUrl;
     }
 }
