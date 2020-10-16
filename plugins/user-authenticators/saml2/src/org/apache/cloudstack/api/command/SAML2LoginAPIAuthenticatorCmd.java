@@ -321,6 +321,7 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         if (redirectUrl.startsWith("/")) {
                             redirectUrl = SAMLUtils.relativeUrlToFullUrl(redirectUrl, req);
                         }
+                        redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
                         resp.sendRedirect(redirectUrl);
                         return ApiResponseSerializer.toSerializedString(loginResponse, responseType);
                     }
