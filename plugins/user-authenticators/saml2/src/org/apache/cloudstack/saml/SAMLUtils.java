@@ -139,11 +139,17 @@ public class SAMLUtils {
         return null;
     }
 
-    public static String buildAuthnRequestUrl(final String authnId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm) {
+    public static String buildAuthnRequestUrl(final String authnId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm, final HttpServletRequest req) {
         String redirectUrl = "";
         try {
             DefaultBootstrap.bootstrap();
-            AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spMetadata.getSsoUrl());
+            s_logger.debug("SAML spMetadata.getSsoUrl()= " + spMetadata.getSsoUrl());
+            if (spMetadata.getSsoUrl().startsWith("/")) {
+                s_logger.debug("SAML spMetadata.getSsoUrl starts with a / (updating)");
+                final String spSsoUrl = relativeToAbsoluteUrl(spMetadata.getSsoUrl(),req);
+            }
+            s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spSsoUrl);
+            AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spSsoUrl);
             PrivateKey privateKey = null;
             if (spMetadata.getKeyPair() != null) {
                 privateKey = spMetadata.getKeyPair().getPrivate();
@@ -363,12 +369,12 @@ public class SAMLUtils {
                 3, "SHA256WithRSA");
     }
 
-    public static String relativeUrlToFullUrl(final String relativeUrl, final HttpServletRequest req) {
+    public static String relativeToAbsoluteUrl(final String relativeUrl, final HttpServletRequest req) {
         String pathPrefix = req.getScheme() + "://" + req.getServerName();
         if (req.getScheme() == "http" && req.getServerPort() != 80 || req.getScheme() == "https" && req.getServerPort() != 443) {
             pathPrefix += ":" + req.getServerPort();
         }
-        s_logger.error("SAML relativeUrlToFullUrl: reqScheme= " + req.getScheme() + "; reqServerName= " + req.getServerName() + "; reqServerPort= " + req.getServerPort() + ".  Final Uri= " + pathPrefix + relativeUrl);
+        s_logger.error("SAML relativeToAbsoluteUrl: reqScheme= " + req.getScheme() + "; reqServerName= " + req.getServerName() + "; reqServerPort= " + req.getServerPort() + ".  Final Uri= " + pathPrefix + relativeUrl);
         return pathPrefix + relativeUrl;
     }
 }
