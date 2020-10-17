@@ -371,11 +371,14 @@ public class SAMLUtils {
     }
 
     public static String relativeToAbsoluteUrl(final String relativeUrl, final HttpServletRequest req) {
-        String pathPrefix = req.getScheme() + "://" + req.getServerName();
-        if (req.getScheme() == "http" && req.getServerPort() != 80 || req.getScheme() == "https" && req.getServerPort() != 443) {
-            pathPrefix += ":" + req.getServerPort();
+        final String scheme = (req.getHeader("X-Forwarded-Proto")) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
+        final String port = (req.getHeader("X-Forwarded-Port")) ? req.getHeader("X-Forwarded-Port") : req.getServerPort();
+        String absoluteUrl = scheme + "://" + req.getServerName();
+        if (scheme == "http" &&  port != 80 || scheme() == "https" && port != 443) {
+            absoluteUrl += ":" + req.getServerPort();
         }
-        s_logger.error("SAML relativeToAbsoluteUrl: reqScheme= " + req.getScheme() + "; reqServerName= " + req.getServerName() + "; reqServerPort= " + req.getServerPort() + ".  Final Uri= " + pathPrefix + relativeUrl);
-        return pathPrefix + relativeUrl;
+        absoluteUrl += absoluteUrl + relativeUrl;
+        s_logger.debug("SAML relativeToAbsoluteUrl: " + relativeUrl + " -> " + absoluteUrl);
+        return absoluteUrl;
     }
 }
