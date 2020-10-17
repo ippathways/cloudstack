@@ -393,9 +393,10 @@ public class SAMLUtils {
     }
 
     public static String relativeToAbsoluteUrl(final String relativeUrl, final HttpServletRequest req) {
+        String scheme;
+        int port;
+
         try {
-            String scheme;
-            int port;
             scheme = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Proto"))) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
             port = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Port"))) ? req.getHeader("X-Forwarded-Port") : req.getServerPort();
         } catch (final Exception ex) {
