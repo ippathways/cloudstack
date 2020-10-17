@@ -97,6 +97,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.cloud.utils.HttpUtils;
+import com.google.common.base.Strings;
 
 public class SAMLUtils {
     public static final Logger s_logger = Logger.getLogger(SAMLUtils.class);
@@ -392,8 +393,16 @@ public class SAMLUtils {
     }
 
     public static String relativeToAbsoluteUrl(final String relativeUrl, final HttpServletRequest req) {
-        final String scheme = (req.getHeader("X-Forwarded-Proto")) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
-        final String port = (req.getHeader("X-Forwarded-Port")) ? req.getHeader("X-Forwarded-Port") : req.getServerPort();
+        try {
+            String scheme;
+            int port;
+            scheme = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Proto"))) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
+            port = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Port"))) ? req.getHeader("X-Forwarded-Port") : req.getServerPort();
+        } catch (final Exception ex) {
+            s_logger.error("Exception determining URL scheme or port.  Defaulting to request variables.", ex);
+            scheme = (!Strings.isNullOrEmpty(scheme)) ? scheme : req.getScheme();
+            port = (port != null) ? port : req.getServerPort();
+        }
         String absoluteUrl = scheme + "://" + req.getServerName();
         if (scheme == "http" &&  port != 80 || scheme() == "https" && port != 443) {
             absoluteUrl += ":" + req.getServerPort();
