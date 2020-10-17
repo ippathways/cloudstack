@@ -408,7 +408,7 @@ public class SAMLUtils {
         if (scheme == "http" &&  port != 80 || scheme == "https" && port != 443) {
             absoluteUrl += ":" + req.getServerPort();
         }
-        absoluteUrl += absoluteUrl + relativeUrl;
+        absoluteUrl += relativeUrl;
         s_logger.debug("SAML relativeToAbsoluteUrl: " + relativeUrl + " -> " + absoluteUrl);
         return absoluteUrl;
     }
