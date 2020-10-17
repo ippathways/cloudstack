@@ -144,11 +144,12 @@ public class SAMLUtils {
         try {
             DefaultBootstrap.bootstrap();
             s_logger.debug("SAML spMetadata.getSsoUrl()= " + spMetadata.getSsoUrl());
-            if (spMetadata.getSsoUrl().startsWith("/")) {
+            String spSsoUrl = spMetadata.getSsoUrl();
+            if (spSsoUrl.startsWith("/")) {
                 s_logger.debug("SAML spMetadata.getSsoUrl starts with a / (updating)");
-                final String spSsoUrl = relativeToAbsoluteUrl(spMetadata.getSsoUrl(),req);
+                spSsoUrl = relativeToAbsoluteUrl(spSsoUrl,req);
+                s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spSsoUrl);
             }
-            s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spSsoUrl);
             AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spSsoUrl);
             PrivateKey privateKey = null;
             if (spMetadata.getKeyPair() != null) {
