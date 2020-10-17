@@ -398,14 +398,14 @@ public class SAMLUtils {
 
         try {
             scheme = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Proto"))) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
-            port = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Port"))) ? req.getHeader("X-Forwarded-Port") : req.getServerPort();
+            port = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Port"))) ? Integer.parseInt(req.getHeader("X-Forwarded-Port")) : req.getServerPort();
         } catch (final Exception ex) {
             s_logger.error("Exception determining URL scheme or port.  Defaulting to request variables.", ex);
             scheme = (!Strings.isNullOrEmpty(scheme)) ? scheme : req.getScheme();
             port = (port != null) ? port : req.getServerPort();
         }
         String absoluteUrl = scheme + "://" + req.getServerName();
-        if (scheme == "http" &&  port != 80 || scheme() == "https" && port != 443) {
+        if (scheme == "http" &&  port != 80 || scheme == "https" && port != 443) {
             absoluteUrl += ":" + req.getServerPort();
         }
         absoluteUrl += absoluteUrl + relativeUrl;
