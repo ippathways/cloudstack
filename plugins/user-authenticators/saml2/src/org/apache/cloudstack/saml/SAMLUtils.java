@@ -201,15 +201,11 @@ public class SAMLUtils {
     }
 
 
-    public static String buildLogoutRequestUrl(final String nameId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm, final HttpServletRequest req) {
+    public static String buildLogoutRequestUrl(final String nameId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm) {
         String redirectUrl = "";
         try {
             DefaultBootstrap.bootstrap();
-            String spSloUrl = spMetadata.getSloUrl();
-            if (spSloUrl.startsWith("/")) {
-                spSloUrl = relativeToAbsoluteUrl(spSloUrl,req);
-            }
-            LogoutRequest logoutRequest = SAMLUtils.buildLogoutRequestObject(spSloUrl, spMetadata.getEntityId(), nameId);
+            LogoutRequest logoutRequest = SAMLUtils.buildLogoutRequestObject(idpMetadata.getSloUrl(), spMetadata.getEntityId(), nameId);
             PrivateKey privateKey = null;
             if (spMetadata.getKeyPair() != null) {
                 privateKey = spMetadata.getKeyPair().getPrivate();
