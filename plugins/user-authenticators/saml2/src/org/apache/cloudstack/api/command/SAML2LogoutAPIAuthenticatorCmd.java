@@ -31,10 +31,12 @@ import org.apache.cloudstack.saml.SAML2AuthManager;
 import org.apache.cloudstack.saml.SAMLPluginConstants;
 import org.apache.cloudstack.saml.SAMLProviderMetadata;
 import org.apache.cloudstack.saml.SAMLUtils;
+import org.apache.cloudstack.saml.SAMLTokenVO;
 import org.apache.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
-// import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.LogoutRequest;
+import org.opensaml.saml2.core.SessionIndex;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.ConfigurationException;
 // import org.opensaml.xml.io.MarshallingException;
@@ -82,6 +84,17 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         throw new ServerApiException(ApiErrorCode.METHOD_NOT_ALLOWED, "This is an authentication api, cannot be used directly");
     }
 
+    public LogoutRequest processSAMLRequest(String requestMessage) {
+        LogoutRequest requestObject = null;
+        try {
+            DefaultBootstrap.bootstrap();
+            requestObject = SAMLUtils.decodeSAMLLogoutRequest(requestMessage);
+        } catch (ConfigurationException | FactoryConfigurationError | ParserConfigurationException | SAXException | IOException | UnmarshallingException e) {
+            s_logger.error("SAMLRequest processing error: " + e.getMessage());
+        }
+        return requestObject;
+    }
+
     @Override
     public String authenticate(String command, Map<String, Object[]> params, HttpSession session, InetAddress remoteAddress, String responseType, StringBuilder auditTrailSb, final HttpServletRequest req, final HttpServletResponse resp) throws ServerApiException {
         auditTrailSb.append("=== SAML SLO Logging out ===");
@@ -89,6 +102,54 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         response.setDescription("success");
         response.setResponseName(getCommandName());
         String responseString = ApiResponseSerializer.toSerializedString(response, responseType);
+
+        SAMLProviderMetadata spMetadata = _samlAuthManager.getSPMetadata();
+        SAMLProviderMetadata idpMetadata = null;
+        if (session != null) {
+            String idpId = (String) session.getAttribute(SAMLPluginConstants.SAML_IDPID);
+            idpMetadata = _samlAuthManager.getIdPMetadata(idpId);
+        }
+        if (SAML2AuthManager.SAMLIsIdentityProviderSloEnabled.value() && params != null && params.containsKey("SAMLRequest")) {
+            final String samlRequest = ((String[])params.get(SAMLPluginConstants.SAML_REQUEST))[0];
+            final LogoutRequest processedSAMLRequest = processSAMLRequest(samlRequest);
+            s_logger.debug("SAML IdP initiated Slo");
+            if (session == null) {
+                final String samlSessionIndex = (String) session.getAttribute(SAMLPluginConstants.SAML_SESSION_INDEX);
+                boolean sessionMatched = false;
+                final List<SessionIndex> sessionIndexes = processedSAMLRequest.getSessionIndexes();
+                for (SessionIndex sessionIndex : sessionIndexes) {
+                    if (sessionIndex.getSessionIndex() == samlSessionIndex) {
+                        sessionMatched = true;
+                        break;
+                    }
+                }
+                if (sessionMatched) {
+                    SAMLTokenVO token = _samlAuthManager.getTokenByNameId(samlSessionIndex);
+                    if (token != null) {
+                        s_logger.debug("SAML SessionIndex found! " + token.getId());
+                        try {
+                            resp.setStatus(HttpServletResponse.SC_TEMPORARY_REDIRECT);
+                            resp.setHeader("Location",token.getJsessionId());
+                            resp.flushBuffer();
+                        } catch (IOException ignored) {
+                            s_logger.info("[ignored] sending redirect to user's SAML Slo URL failed.", ignored);
+                        }
+                    } else {
+                        s_logger.debug("SAML token not found for " + samlSessionIndex);
+                    }
+                } else {
+                    s_logger.debug("SAML SessionIndex doesn't match this user");
+                }
+            } else {
+                s_logger.debug("SAML Responding to IdP initiated Slo");
+                try {
+                    resp.sendRedirect(SAMLUtils.buildLogoutResponseUrl(processedSAMLRequest.getID(), spMetadata, idpMetadata, StatusCode.SUCCESS_URI, SAML2AuthManager.SAMLSignatureAlgorithm.value()));
+                } catch (IOException ignored) {
+                    s_logger.info("[ignored] sending Slo Response redirect to IdP failed.", ignored);
+                }
+            }
+            return responseString;
+        }
 
         if (session == null) {
             try {
@@ -130,8 +191,6 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         }
 
         String idpId = (String) session.getAttribute(SAMLPluginConstants.SAML_IDPID);
-        SAMLProviderMetadata spMetadata = _samlAuthManager.getSPMetadata();
-        SAMLProviderMetadata idpMetadata = _samlAuthManager.getIdPMetadata(idpId);
         String nameId = (String) session.getAttribute(SAMLPluginConstants.SAML_NAMEID);
         if (idpMetadata == null || nameId == null || nameId.isEmpty()) {
             try {
