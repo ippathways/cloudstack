@@ -467,7 +467,7 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     }
 
     @Override
-    public void saveToken(String authnId, String domainPath, String entity) {
+    public void saveToken(String authnId, String domainPath, String entity, String samlNameId, String jsessionId) {
         Long domainId = null;
         if (domainPath != null) {
             Domain domain = _domainMgr.findDomainByPath(domainPath);
@@ -475,7 +475,7 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
                 domainId = domain.getId();
             }
         }
-        SAMLTokenVO token = new SAMLTokenVO(authnId, domainId, entity);
+        SAMLTokenVO token = new SAMLTokenVO(authnId, domainId, entity, samlNameId, jsessionId);
         if (_samlTokenDao.findByUuid(authnId) == null) {
             _samlTokenDao.persist(token);
         } else {
@@ -484,8 +484,18 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     }
 
     @Override
+    public void updateToken(SAMLTokenVO token) {
+        _samlTokenDao.persist(token);
+    }
+
+    @Override
     public SAMLTokenVO getToken(String authnId) {
         return _samlTokenDao.findByUuid(authnId);
+    }
+
+    @Override
+    public SAMLTokenVO getTokenByNameId(String nameId) {
+        return _samlTokenDao.findByNameId(nameId);
     }
 
     @Override
@@ -536,6 +546,6 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
                 SAMLServiceProviderSingleSignOnURL, SAMLServiceProviderSingleLogOutURL,
                 SAMLCloudStackRedirectionUrl, SAMLUserAttributeName,
                 SAMLIdentityProviderMetadataURL, SAMLDefaultIdentityProviderId,
-                SAMLSignatureAlgorithm, SAMLAppendDomainSuffix, SAMLTimeout};
+                SAMLSignatureAlgorithm, SAMLAppendDomainSuffix, SAMLTimeout, SAMLIsIdentityProviderSloEnabled};
     }
 }
