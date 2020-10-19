@@ -71,17 +71,27 @@ import org.opensaml.saml2.core.AuthnContext;
 import org.opensaml.saml2.core.AuthnContextClassRef;
 import org.opensaml.saml2.core.AuthnContextComparisonTypeEnumeration;
 import org.opensaml.saml2.core.AuthnRequest;
+import org.opensaml.saml2.core.AuthnStatement;
 import org.opensaml.saml2.core.Issuer;
 import org.opensaml.saml2.core.LogoutRequest;
+import org.opensaml.saml2.core.LogoutResponse;
 import org.opensaml.saml2.core.NameID;
 import org.opensaml.saml2.core.RequestedAuthnContext;
 import org.opensaml.saml2.core.Response;
+/*import org.opensaml.saml2.core.Response;*/
+import org.opensaml.saml2.core.Status;
+import org.opensaml.saml2.core.StatusCode;
+import org.opensaml.saml2.core.StatusMessage;
 import org.opensaml.saml2.core.impl.AuthnContextClassRefBuilder;
 import org.opensaml.saml2.core.impl.AuthnRequestBuilder;
 import org.opensaml.saml2.core.impl.IssuerBuilder;
 import org.opensaml.saml2.core.impl.LogoutRequestBuilder;
+import org.opensaml.saml2.core.impl.LogoutResponseBuilder;
 import org.opensaml.saml2.core.impl.NameIDBuilder;
 import org.opensaml.saml2.core.impl.RequestedAuthnContextBuilder;
+import org.opensaml.saml2.core.impl.StatusBuilder;
+import org.opensaml.saml2.core.impl.StatusCodeBuilder;
+import org.opensaml.saml2.core.impl.StatusMessageBuilder;
 import org.opensaml.xml.ConfigurationException;
 import org.opensaml.xml.XMLObject;
 import org.opensaml.xml.io.Marshaller;
@@ -140,16 +150,32 @@ public class SAMLUtils {
         return null;
     }
 
+    public static String getSessionIndexFromAssertion(final Assertion assertion) {
+        String sessionIndex = null;
+
+        if (assertion == null) {
+            return sessionIndex;
+        }
+
+        final List<AuthnStatement> authnStatements = assertion.getAuthnStatements();
+        for (AuthnStatement authnStatement : authnStatements) {
+            sessionIndex = authnStatement.getSessionIndex();
+            if (sessionIndex != null) {
+                break;
+            }
+        }
+
+        return sessionIndex;
+    }
+
     public static String buildAuthnRequestUrl(final String authnId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String signatureAlgorithm, final HttpServletRequest req) {
         String redirectUrl = "";
         try {
             DefaultBootstrap.bootstrap();
-            s_logger.debug("SAML spMetadata.getSsoUrl()= " + spMetadata.getSsoUrl());
             String spSsoUrl = spMetadata.getSsoUrl();
             if (spSsoUrl.startsWith("/")) {
-                s_logger.debug("SAML spMetadata.getSsoUrl starts with a / (updating)");
-                spSsoUrl = relativeToAbsoluteUrl(spSsoUrl,req);
-                s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spSsoUrl);
+                spSsoUrl = getAbsoluteUrlPrefix(req) + spSsoUrl;
+                s_logger.debug("SAML " + spMetadata.getSsoUrl() + " changed to = " + spSsoUrl);
             }
             AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spSsoUrl);
             PrivateKey privateKey = null;
@@ -214,6 +240,7 @@ public class SAMLUtils {
         } catch (ConfigurationException | FactoryConfigurationError | MarshallingException | IOException | NoSuchAlgorithmException | InvalidKeyException | java.security.SignatureException e) {
             s_logger.error("SAML LogoutRequest message building error: " + e.getMessage());
         }
+
         return redirectUrl;
     }
 
@@ -229,7 +256,54 @@ public class SAMLUtils {
         logoutRequest.setIssueInstant(new DateTime());
         logoutRequest.setIssuer(issuer);
         logoutRequest.setNameID(nameID);
+
         return logoutRequest;
+    }
+
+    public static String buildLogoutResponseUrl(final String requestId, final SAMLProviderMetadata spMetadata, final SAMLProviderMetadata idpMetadata, final String status, final String statusMsg, final String signatureAlgorithm) {
+        String responseUrl = "";
+        try {
+            DefaultBootstrap.bootstrap();
+            LogoutResponse logoutResponse = SAMLUtils.buildLogoutResponseObject(idpMetadata.getSloUrl(), spMetadata.getEntityId(), requestId, status, statusMsg);
+            PrivateKey privateKey = null;
+            if (spMetadata.getKeyPair() != null) {
+                privateKey = spMetadata.getKeyPair().getPrivate();
+            }
+            responseUrl = idpMetadata.getSloUrl() + "?" + SAMLUtils.generateSAMLRequestSignature("SAMLResponse=" + SAMLUtils.encodeSAMLRequest(logoutResponse), privateKey, signatureAlgorithm);
+        } catch (ConfigurationException | FactoryConfigurationError | MarshallingException | IOException | NoSuchAlgorithmException | InvalidKeyException | java.security.SignatureException e) {
+            s_logger.error("SAML LogoutResponse message building error: " + e.getMessage());
+        }
+
+        return responseUrl;
+    }
+
+    public static LogoutResponse buildLogoutResponseObject(final String idpUrl, final String spId, final String requestId, final String status, final String statusMsg) {
+        Issuer issuer = new IssuerBuilder().buildObject();
+        issuer.setValue(spId);
+        LogoutResponse logoutResponse = new LogoutResponseBuilder().buildObject();
+        logoutResponse.setID(generateSecureRandomId());
+        logoutResponse.setDestination(idpUrl);
+        logoutResponse.setInResponseTo(requestId);
+        logoutResponse.setStatus(buildStatus(status, statusMsg));
+        logoutResponse.setIssuer(issuer);
+        logoutResponse.setIssueInstant(new DateTime());
+
+        return logoutResponse;
+    }
+
+    private static Status buildStatus(final String statusUri, final String statusMsg) {
+        Status status = new StatusBuilder().buildObject();
+        StatusCode statusCode = new StatusCodeBuilder().buildObject();
+        statusCode.setValue(statusUri);
+        status.setStatusCode(statusCode);
+
+        if (!Strings.isNullOrEmpty(statusMsg)) {
+            StatusMessage statusMessage = new StatusMessageBuilder().buildObject();
+            statusMessage.setMessage(statusMsg);
+            status.setStatusMessage(statusMessage);
+        }
+
+        return status;
     }
 
     public static String encodeSAMLRequest(XMLObject authnRequest)
@@ -262,6 +336,20 @@ public class SAMLUtils {
         UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
         Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
         return (Response) unmarshaller.unmarshall(element);
+    }
+
+    public static LogoutRequest decodeSAMLLogoutRequest(String requestMessage)
+            throws ConfigurationException, ParserConfigurationException,
+            SAXException, IOException, UnmarshallingException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+        byte[] base64DecodedRequest = Base64.decode(requestMessage);
+        Document document = docBuilder.parse(new ByteArrayInputStream(base64DecodedRequest));
+        Element element = document.getDocumentElement();
+        UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+        Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+        return (LogoutRequest) unmarshaller.unmarshall(element);
     }
 
     public static String generateSAMLRequestSignature(final String urlEncodedString, final PrivateKey signingKey, final String sigAlgorithmName)
@@ -388,7 +476,7 @@ public class SAMLUtils {
                 3, "SHA256WithRSA");
     }
 
-    public static String relativeToAbsoluteUrl(final String relativeUrl, final HttpServletRequest req) {
+    public static String getAbsoluteUrlPrefix(final HttpServletRequest req) {
         String scheme = null;
         Integer port = null;
 
@@ -400,12 +488,23 @@ public class SAMLUtils {
             scheme = (!Strings.isNullOrEmpty(scheme)) ? scheme : req.getScheme();
             port = (port != null) ? port : req.getServerPort();
         }
-        String absoluteUrl = scheme + "://" + req.getServerName();
+        String prefix = scheme + "://" + req.getServerName();
         if (scheme == "http" &&  port != 80 || scheme == "https" && port != 443) {
-            absoluteUrl += ":" + req.getServerPort();
+            prefix += ":" + req.getServerPort();
         }
-        absoluteUrl += relativeUrl;
-        s_logger.debug("SAML relativeToAbsoluteUrl: " + relativeUrl + " -> " + absoluteUrl);
+
+        return prefix;
+    }
+
+    public static String getCurrentUrl(final HttpServletRequest req) {
+        String absoluteUrl = getAbsoluteUrlPrefix(req);
+
+        if (req.getPathInfo() != null) {
+            absoluteUrl += req.getPathInfo();
+        }
+        if (req.getQueryString() != null) {
+            absoluteUrl += "?" + req.getQueryString();
+        }
         return absoluteUrl;
     }
 }
