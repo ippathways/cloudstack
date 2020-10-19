@@ -20,4 +20,7 @@ import com.cloud.utils.db.GenericDao;
 
 public interface SAMLTokenDao extends GenericDao<SAMLTokenVO, Long> {
     public void expireTokens();
+
+    public SAMLTokenVO findBySessionIndex(final String sessionIndex);
+    public int removeBySessionIndexAndSloUrl(final String sessionIndex, final String sloUrl);
 }

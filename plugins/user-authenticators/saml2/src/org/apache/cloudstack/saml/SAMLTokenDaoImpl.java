@@ -19,6 +19,8 @@ package org.apache.cloudstack.saml;
 import com.cloud.utils.db.DB;
 import com.cloud.utils.db.GenericDaoBase;
 import com.cloud.utils.db.TransactionLegacy;
+import com.cloud.utils.db.SearchBuilder;
+import com.cloud.utils.db.SearchCriteria;
 import com.cloud.utils.exception.CloudRuntimeException;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +29,20 @@ import java.sql.PreparedStatement;
 @DB
 @Component
 public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implements SAMLTokenDao {
+    protected final SearchBuilder<SAMLTokenVO> SessionIndexSearch;
+    protected final SearchBuilder<SAMLTokenVO> SessionIndexAndSloUrlSearch;
 
     public SAMLTokenDaoImpl() {
         super();
+        SessionIndexSearch = createSearchBuilder();
+        SessionIndexSearch.and("session_index", SessionIndexSearch.entity().getSessionIndex(), SearchCriteria.Op.EQ);
+        SessionIndexSearch.done();
+
+        SessionIndexAndSloUrlSearch = createSearchBuilder();
+        SessionIndexAndSloUrlSearch.and("session_index", SessionIndexAndSloUrlSearch.entity().getSessionIndex(), SearchCriteria.Op.EQ);
+        SessionIndexAndSloUrlSearch.and("slo_url", SessionIndexAndSloUrlSearch.entity().getSloUrl(), SearchCriteria.Op.EQ);
+        SessionIndexAndSloUrlSearch.done();
+
     }
 
     @Override
@@ -45,5 +58,21 @@ public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implemen
             txn.rollback();
             throw new CloudRuntimeException("Unable to flush old SAML tokens due to exception", e);
         }
+    }
+
+    @Override
+    public SAMLTokenVO findBySessionIndex(final String sessionIndex) {
+        SearchCriteria<SAMLTokenVO> sc = SessionIndexSearch.create();
+        sc.setParameters("session_index", sessionIndex);
+        return findOneBy(sc);
+    }
+
+    @Override
+    public int removeBySessionIndexAndSloUrl(final String sessionIndex, final String sloUrl) {
+        SearchCriteria<SAMLTokenVO> sc = SessionIndexAndSloUrlSearch.create();
+        sc.setParameters("sessioni_index", sessionIndex);
+        sc.setParameters("slo_url", sloUrl);
+
+        return remove(sc);
     }
 }
