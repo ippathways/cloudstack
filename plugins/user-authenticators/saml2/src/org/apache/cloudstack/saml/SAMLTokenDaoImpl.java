@@ -19,6 +19,8 @@ package org.apache.cloudstack.saml;
 import com.cloud.utils.db.DB;
 import com.cloud.utils.db.GenericDaoBase;
 import com.cloud.utils.db.TransactionLegacy;
+import com.cloud.utils.db.SearchBuilder;
+import com.cloud.utils.db.SearchCriteria;
 import com.cloud.utils.exception.CloudRuntimeException;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +29,14 @@ import java.sql.PreparedStatement;
 @DB
 @Component
 public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implements SAMLTokenDao {
+    protected final SearchBuilder<SAMLTokenVO> NameIdSearch;
 
     public SAMLTokenDaoImpl() {
         super();
+        NameIdSearch = createSearchBuilder();
+        NameIdSearch.and("saml_nameid", NameIdSearch.entity().getSamlNameId(), SearchCriteria.Op.EQ);
+        NameIdSearch.done();
+
     }
 
     @Override
@@ -45,5 +52,12 @@ public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implemen
             txn.rollback();
             throw new CloudRuntimeException("Unable to flush old SAML tokens due to exception", e);
         }
+    }
+
+    @Override
+    public SAMLTokenVO findByNameId(String nameId) {
+        SearchCriteria<SAMLTokenVO> sc = NameIdSearch.create();
+        sc.setParameters("saml_nameid", nameId);
+        return findOneBy(sc);
     }
 }
