@@ -22,6 +22,7 @@ public class SAMLPluginConstants {
     public static final int SAML_REFRESH_INTERVAL = 300;
 
     public static final String SAML_RESPONSE = "SAMLResponse";
+    public static final String SAML_REQUEST = "SAMLRequest";
     public static final String SAML_IDPID = "SAML_IDPID";
     public static final String SAML_SESSIONID = "SAML_SESSIONID";
     public static final String SAML_NAMEID = "SAML_NAMEID";
