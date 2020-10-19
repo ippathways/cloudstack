@@ -264,6 +264,20 @@ public class SAMLUtils {
         return (Response) unmarshaller.unmarshall(element);
     }
 
+    public static LogoutRequest decodeSAMLLogoutRequest(String requestMessage)
+            throws ConfigurationException, ParserConfigurationException,
+            SAXException, IOException, UnmarshallingException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+        byte[] base64DecodedRequest = Base64.decode(requestMessage);
+        Document document = docBuilder.parse(new ByteArrayInputStream(base64DecodedRequest));
+        Element element = document.getDocumentElement();
+        UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+        Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
+        return (LogoutRequest) unmarshaller.unmarshall(element);
+    }
+
     public static String generateSAMLRequestSignature(final String urlEncodedString, final PrivateKey signingKey, final String sigAlgorithmName)
             throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, UnsupportedEncodingException {
         if (signingKey == null) {

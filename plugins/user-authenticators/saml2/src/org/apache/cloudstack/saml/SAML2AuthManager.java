@@ -43,9 +43,6 @@ public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableSe
     public static final ConfigKey<String> SAMLServiceProviderOrgUrl = new ConfigKey<String>("Advanced", String.class, "saml2.sp.org.url", "http://cloudstack.apache.org",
             "SAML2 Service Provider Organization URL", true);
 
-    public static final ConfigKey<String> SAMLServiceProviderSingleSignOnScheme = new ConfigKey<String>("Advanced", String.class, "saml2.sp.sso.scheme", "https",
-            "If saml2.sp.sso.url is a relative path, specify http or https here.", true);
-
     public static final ConfigKey<String> SAMLServiceProviderSingleSignOnURL = new ConfigKey<String>("Advanced", String.class, "saml2.sp.sso.url", "http://localhost:8080/client/api?command=samlSso",
             "SAML2 CloudStack Service Provider Single Sign On URL", true);
 
@@ -73,6 +70,8 @@ public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableSe
     public static final ConfigKey<Integer> SAMLTimeout = new ConfigKey<Integer>("Advanced", Integer.class, "saml2.timeout", "1800",
             "SAML2 IDP Metadata refresh interval in seconds, minimum value is set to 300", true);
 
+    public static final ConfigKey<Boolean> SAMLIsIdentityProviderSloEnabled = new ConfigKey<Boolean>("Advanced", Boolean.class, "saml2.idpSlo.enabled", "false",
+            "If enabled, allow IdP to perform Single Log Out.  Trusts IdP Slo SAMLRequest if user session doesn't exist.", true);
     public SAMLProviderMetadata getSPMetadata();
     public SAMLProviderMetadata getIdPMetadata(String entityId);
     public Collection<SAMLProviderMetadata> getAllIdPMetadata();
@@ -80,7 +79,7 @@ public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableSe
     public boolean isUserAuthorized(Long userId, String entityId);
     public boolean authorizeUser(Long userId, String entityId, boolean enable);
 
-    public void saveToken(String authnId, String domain, String entity);
+    public void saveToken(String authnId, String domain, String entity, String samlNameId, String jsessionId);
     public SAMLTokenVO getToken(String authnId);
     public void expireTokens();
 }
