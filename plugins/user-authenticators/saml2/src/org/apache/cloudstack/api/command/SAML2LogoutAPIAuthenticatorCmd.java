@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
 // import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.Response;
+import org.opensaml.saml2.core.LogoutRequest;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.xml.ConfigurationException;
 // import org.opensaml.xml.io.MarshallingException;
@@ -82,6 +83,17 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         throw new ServerApiException(ApiErrorCode.METHOD_NOT_ALLOWED, "This is an authentication api, cannot be used directly");
     }
 
+    public LogoutRequest processSAMLRequest(String requestMessage) {
+        LogoutRequest requestObject = null;
+        try {
+            DefaultBootstrap.bootstrap();
+            requestObject = SAMLUtils.decodeSAMLLogoutRequest(requestMessage);
+        } catch (ConfigurationException | FactoryConfigurationError | ParserConfigurationException | SAXException | IOException | UnmarshallingException e) {
+            s_logger.error("SAMLRequest processing error: " + e.getMessage());
+        }
+        return requestObject;
+    }
+
     @Override
     public String authenticate(String command, Map<String, Object[]> params, HttpSession session, InetAddress remoteAddress, String responseType, StringBuilder auditTrailSb, final HttpServletRequest req, final HttpServletResponse resp) throws ServerApiException {
         auditTrailSb.append("=== SAML SLO Logging out ===");
@@ -92,6 +104,11 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
 
         if (session == null) {
             try {
+                if (SAML2AuthManager.SAMLIsIdentityProviderSloEnabled.value() && params != null && params.containsKey("SAMLRequest")) {
+                    final String samlRequest = ((String[])params.get(SAMLPluginConstants.SAML_REQUEST))[0];
+                    LogoutRequest processedSAMLRequest = this.processSAMLRequest(samlRequest);
+                    s_logger.debug("SAML IdP initiated Slo");
+                }
                 resp.sendRedirect(SAML2AuthManager.SAMLCloudStackRedirectionUrl.value());
             } catch (IOException ignored) {
                 s_logger.info("[ignored] sending redirected failed.", ignored);
