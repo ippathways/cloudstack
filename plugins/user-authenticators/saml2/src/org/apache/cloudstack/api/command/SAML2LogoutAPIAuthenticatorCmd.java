@@ -108,7 +108,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
                     final String samlRequest = ((String[])params.get(SAMLPluginConstants.SAML_REQUEST))[0];
                     LogoutRequest processedSAMLRequest = this.processSAMLRequest(samlRequest);
                     s_logger.debug("SAML IdP initiated Slo");
-                    final String nameId = processedSAMLRequst.getNameID().getValue();
+                    final String nameId = processedSAMLRequest.getNameID().getValue();
                     if (nameId != null) {
                         SAMLTokenVO token = _samlAuthManager.getTokenByNameId(nameId);
                         if (token != null) {
