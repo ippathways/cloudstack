@@ -313,11 +313,11 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         LoginCmdResponse loginResponse = (LoginCmdResponse) _apiServer.loginUser(session, userAccount.getUsername(), userAccount.getUsername() + userAccount.getSource().toString(),
                                 userAccount.getDomainId(), null, remoteAddress, params);
                         SAMLUtils.setupSamlUserCookies(loginResponse, resp);
-                        token.setSAMLNameId((String)session.getAttribute(SAMLPluginConstants.SAML_NAMEID));
+                        token.setSamlNameId((String)session.getAttribute(SAMLPluginConstants.SAML_NAMEID));
                         _samlAuthManager.updateToken(token);
                         token.setJsessionId(session.getId());
                         _samlAuthManager.updateToken(token);
-                        s_logger.debug("Wrote SAML NameId to token table: " + token.getSAMLNameId());
+                        s_logger.debug("Wrote SAML NameId to token table: " + token.getSamlNameId());
                         s_logger.debug("Wrote jsessionID to token table: " + token.getJsessionId());
                         final String redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
                         resp.sendRedirect(redirectUrl);
