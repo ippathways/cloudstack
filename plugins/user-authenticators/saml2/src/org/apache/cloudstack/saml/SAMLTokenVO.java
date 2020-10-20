@@ -45,7 +45,7 @@ public class SAMLTokenVO implements Identity, InternalIdentity {
     @Column(name = "entity")
     private String entity = null;
 
-    @Column(name = "saml_nameid")
+    @Column(name = "slair")
     private String samlNameId = null;
 
     @Column(name = "jsessionid")
