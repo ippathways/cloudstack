@@ -95,11 +95,11 @@ public class SAMLTokenVO implements Identity, InternalIdentity {
         this.entity = entity;
     }
 
-    public String getSAMLNameId() {
+    public String getSamlNameId() {
         return samlNameId;
     }
 
-    public void setSAMLNameId(String samlNameId) {
+    public void setSamlNameId(String samlNameId) {
         this.samlNameId = samlNameId;
     }
 
