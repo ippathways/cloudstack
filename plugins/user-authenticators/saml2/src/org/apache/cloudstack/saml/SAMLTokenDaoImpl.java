@@ -34,7 +34,7 @@ public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implemen
     public SAMLTokenDaoImpl() {
         super();
         NameIdSearch = createSearchBuilder();
-        NameIdSearch.and("saml_nameid", nameIdSearch.entity().getSamlNameId(), SearchCriteria.Op.EQ);
+        NameIdSearch.and("saml_nameid", NameIdSearch.entity().getSamlNameId(), SearchCriteria.Op.EQ);
         NameIdSearch.done();
 
     }
