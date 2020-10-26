@@ -35,6 +35,7 @@ import org.apache.cloudstack.api.auth.APIAuthenticationType;
 import org.apache.cloudstack.api.auth.APIAuthenticator;
 import org.apache.cloudstack.api.auth.PluggableAPIAuthenticator;
 import org.apache.cloudstack.api.response.LoginCmdResponse;
+import org.apache.cloudstack.saml.SAMLActiveUser;
 import org.apache.cloudstack.saml.SAML2AuthManager;
 import org.apache.cloudstack.saml.SAMLPluginConstants;
 import org.apache.cloudstack.saml.SAMLProviderMetadata;
@@ -173,19 +174,9 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                             params, responseType));
                 }
                 String authnId = SAMLUtils.generateSecureRandomId();
-                _samlAuthManager.saveToken(authnId, domainPath, idpMetadata.getEntityId());
+                _samlAuthManager.saveToken(authnId, domainPath, idpMetadata.getEntityId(), null, null);
                 s_logger.debug("Sending SAMLRequest id=" + authnId);
-                //s_logger.debug("SAML spMetadata.getSsoUrl()= " + spMetadata.getSsoUrl());
-                //if (spMetadata.getSsoUrl().startsWith("/")) {
-                //    s_logger.debug("SAML spMetadata.getSsoUrl starts with a / (updating)");
-                //    final relativeSsoUrl = spMetadata.getSsoUrl();
-                //    spMetadata.setSsoUrl(SAMLUtils.relativeUrlToFullUrl(spMetadata.getSsoUrl(),req));
-                //}
-                //s_logger.debug("SAML spMetadata.getSsoUrl() changed to = " + spMetadata.getSsoUrl());
                 String redirectUrl = SAMLUtils.buildAuthnRequestUrl(authnId, spMetadata, idpMetadata, SAML2AuthManager.SAMLSignatureAlgorithm.value(), req);
-                //spMetadata.setSsoUrl(relativeSsoUrl);
-                //s_logger.debug("SAML spMetadata.getSsoUrl() changed back to = " + spMetadata.getSsoUrl());
-                s_logger.debug("SAML Redirecting to: " + redirectUrl);
                 resp.sendRedirect(redirectUrl);
                 return "";
             } if (params.containsKey("SAMLart")) {
@@ -203,6 +194,7 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                 }
 
                 String username = null;
+                String samlSessionIndex = null;
                 Issuer issuer = processedSAMLResponse.getIssuer();
                 SAMLProviderMetadata spMetadata = _samlAuthManager.getSPMetadata();
                 SAMLProviderMetadata idpMetadata = _samlAuthManager.getIdPMetadata(issuer.getValue());
@@ -244,11 +236,14 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                 }
 
                 for (Assertion assertion: processedSAMLResponse.getAssertions()) {
-                    if (assertion!= null && assertion.getSubject() != null && assertion.getSubject().getNameID() != null) {
+                    if (assertion != null && assertion.getSubject() != null && assertion.getSubject().getNameID() != null) {
                         session.setAttribute(SAMLPluginConstants.SAML_NAMEID, assertion.getSubject().getNameID().getValue());
-                        break;
+                    }
+                    if (assertion != null && samlSessionIndex == null) {
+                        samlSessionIndex = SAMLUtils.getSessionIndexFromAssertion(assertion);
                     }
                 }
+
 
                 if (idpMetadata.getEncryptionCertificate() != null && spMetadata != null
                         && spMetadata.getKeyPair() != null && spMetadata.getKeyPair().getPrivate() != null) {
@@ -290,6 +285,9 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                             if (username == null) {
                                 username = SAMLUtils.getValueFromAttributeStatements(assertion.getAttributeStatements(), SAML2AuthManager.SAMLUserAttributeName.value());
                             }
+                            if (samlSessionIndex == null) {
+                                samlSessionIndex = SAMLUtils.getSessionIndexFromAssertion(assertion);
+                            }
                         }
                     }
                 }
@@ -297,6 +295,11 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                 if (username == null) {
                     throw new ServerApiException(ApiErrorCode.ACCOUNT_ERROR, _apiServer.getSerializedApiError(ApiErrorCode.ACCOUNT_ERROR.getHttpCode(),
                             "Failed to find admin configured username attribute in the SAML Response. Please ask your administrator to check SAML user attribute name.", params, responseType));
+                }
+
+                if (samlSessionIndex == null) {
+                    throw new ServerApiException(ApiErrorCode.ACCOUNT_ERROR, _apiServer.getSerializedApiError(ApiErrorCode.ACCOUNT_ERROR.getHttpCode(),
+                            "Failed to find SessionIndex in SAML Response.", params, responseType));
                 }
 
                 UserAccount userAccount = null;
@@ -323,11 +326,14 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         LoginCmdResponse loginResponse = (LoginCmdResponse) _apiServer.loginUser(session, userAccount.getUsername(), userAccount.getUsername() + userAccount.getSource().toString(),
                                 userAccount.getDomainId(), null, remoteAddress, params);
                         SAMLUtils.setupSamlUserCookies(loginResponse, resp);
-                        String redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
-                        if (redirectUrl.startsWith("/")) {
-                            redirectUrl = SAMLUtils.relativeToAbsoluteUrl(redirectUrl, req);
-                        }
-                        redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
+                        token.setSessionIndex(samlSessionIndex);
+                        token.setSloUrl(SAMLUtils.getAbsoluteUrlPrefix(req) + "/client/api?command=samlSlo");
+                        _samlAuthManager.updateToken(token);
+                        s_logger.debug("Wrote SAML SessionIndex to token table: " + token.getSessionIndex());
+                        s_logger.debug("Wrote SloUrl to token table: " + token.getSloUrl());
+                        session.setAttribute(SAMLPluginConstants.SAML_TOKEN, token);
+                        session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, new SAMLActiveUser());
+                        final String redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
                         resp.sendRedirect(redirectUrl);
                         return ApiResponseSerializer.toSerializedString(loginResponse, responseType);
                     }
