@@ -22,6 +22,7 @@ package org.apache.cloudstack.saml;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -42,6 +43,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -288,6 +290,34 @@ public class SAMLUtils {
         logoutResponse.setIssueInstant(new DateTime());
 
         return logoutResponse;
+    }
+
+    public static boolean redirectToSloUrlViaPost(final HttpServletResponse resp, final String postUrl, final String currentUrl, final String samlRequest, final int attempt) {
+        try {
+            final String postRedirect = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
+                    + "<html><head><meta name=\"robots\" content=\"noindex, nofollow\"><title>Logging Out</title></head>"
+                    + "<body><p>Redirecting, please wait.</p>"
+                    + "<script>window.onload = function() {document.forms[0].submit()};</script>"
+                    + "<form name=\"saml-post-binding\" method=\"post\" action=\"" + postUrl + "\">"
+                    + "<input type=\"hidden\" name=\"SAMLRequest\" value=\"" + samlRequest + "\"/>"
+                    + "<input type=\"hidden\" name=\"prevUrl\" value=\"" + currentUrl + "\"/>"
+                    + "<input type=\"hidden\" name=\"attempt\" value=\"" + attempt + "\"/>"
+                    + "<noscript>"
+                    + "<p>JavaScript is disabled. We strongly recommend to enable it. Click the button below to continue.</p>"
+                    + "</noscript></form></body></html>";
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.setContentType("text/html");
+            resp.setContentLength(postRedirect.length());
+            resp.setDateHeader("Date", new Date().getTime());
+            resp.setHeader("Cache-Control", "no-cache");
+            PrintWriter writer = resp.getWriter();
+            writer.println(postRedirect);
+            resp.flushBuffer();
+        } catch (IOException e) {
+            s_logger.error("Exception sending POST redirect to user's SAML Slo URL.");
+            return false;
+        }
+        return true;
     }
 
     private static Status buildStatus(final String statusUri, final String statusMsg) {
