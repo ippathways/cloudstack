@@ -70,8 +70,8 @@ public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableSe
     public static final ConfigKey<Integer> SAMLTimeout = new ConfigKey<Integer>("Advanced", Integer.class, "saml2.timeout", "1800",
             "SAML2 IDP Metadata refresh interval in seconds, minimum value is set to 300", true);
 
-    public static final ConfigKey<Boolean> SAMLIsIdentityProviderSloEnabled = new ConfigKey<Boolean>("Advanced", Boolean.class, "saml2.idpSlo.enabled", "false",
-            "If enabled, allow IdP to perform Single Log Out.  Trusts IdP Slo SAMLRequest if user session doesn't exist.", true);
+    public static final ConfigKey<Boolean> SAMLSupportHostnameAliases = new ConfigKey<Boolean>("Advanced", Boolean.class, "saml2.hostnameAliases.enabled", "false",
+            "Enables support for other Service Provider hostnames. Dynamically updates SSO URL and tracks and redirects to user's SLO URL for IdP initiated SLO.", true);
     public SAMLProviderMetadata getSPMetadata();
     public SAMLProviderMetadata getIdPMetadata(String entityId);
     public Collection<SAMLProviderMetadata> getAllIdPMetadata();
