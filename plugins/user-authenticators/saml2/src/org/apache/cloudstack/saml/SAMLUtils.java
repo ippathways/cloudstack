@@ -26,7 +26,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.MalformedURLException;
 import java.net.URLEncoder;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -173,11 +175,8 @@ public class SAMLUtils {
         String redirectUrl = "";
         try {
             DefaultBootstrap.bootstrap();
-            String spSsoUrl = spMetadata.getSsoUrl();
-            if (spSsoUrl.startsWith("/")) {
-                spSsoUrl = getAbsoluteUrlPrefix(req) + spSsoUrl;
-                s_logger.debug("SAML " + spMetadata.getSsoUrl() + " changed to = " + spSsoUrl);
-            }
+            final String spSsoUrl = (SAML2AuthManager.SAMLSupportHostnameAliases.value()) ? replaceBaseUrl(spMetadata.getSsoUrl(), getBaseUrl(req)) : spMetadata.getSsoUrl();
+            s_logger.debug("SAML SP SSO Url: " + spSsoUrl);
             AuthnRequest authnRequest = SAMLUtils.buildAuthnRequestObject(authnId, spMetadata.getEntityId(), idpMetadata.getSsoUrl(), spSsoUrl);
             PrivateKey privateKey = null;
             if (spMetadata.getKeyPair() != null) {
@@ -505,7 +504,8 @@ public class SAMLUtils {
                 3, "SHA256WithRSA");
     }
 
-    public static String getAbsoluteUrlPrefix(final HttpServletRequest req) {
+    public static String getBaseUrl(final HttpServletRequest req) {
+        String baseUrl = null;
         String scheme = null;
         Integer port = null;
 
@@ -513,20 +513,62 @@ public class SAMLUtils {
             scheme = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Proto"))) ? req.getHeader("X-Forwarded-Proto") : req.getScheme();
             port = (!Strings.isNullOrEmpty(req.getHeader("X-Forwarded-Port"))) ? Integer.parseInt(req.getHeader("X-Forwarded-Port")) : req.getServerPort();
         } catch (final Exception ex) {
-            s_logger.error("Exception determining URL scheme or port.  Defaulting to request variables.", ex);
+            s_logger.error("SAML Exception determining URL scheme or port.  Defaulting to request variables.", ex);
             scheme = (!Strings.isNullOrEmpty(scheme)) ? scheme : req.getScheme();
             port = (port != null) ? port : req.getServerPort();
         }
-        String prefix = scheme + "://" + req.getServerName();
-        if (scheme == "http" &&  port != 80 || scheme == "https" && port != 443) {
-            prefix += ":" + req.getServerPort();
+        try {
+            baseUrl = scheme + "://" + req.getServerName();
+            final URL url = new URL(baseUrl);
+            if (url.getPort() != -1 && url.getDefaultPort() != url.getPort()) {
+                baseUrl += ":" + url.getPort();
+            }
+        } catch (MalformedURLException ex) {
+            s_logger.error("SAML could not determine base URL from HttpServletRequest, unable to parse: " + baseUrl, ex);
         }
 
-        return prefix;
+        return baseUrl;
+    }
+
+    public static String getBaseUrl(final String urlString) {
+        URL url = null;
+        String baseUrl = null;
+
+        try {
+            url = new URL(urlString);
+            if (url.getProtocol() != "http" && url.getProtocol() != "https") {
+                throw new MalformedURLException("urlString is not http or https");
+            }
+            baseUrl = url.getProtocol() + "://" + url.getHost();
+            if (url.getPort() != -1 && url.getDefaultPort() != url.getPort()) {
+                baseUrl += ":" + url.getPort();
+            }
+        } catch (MalformedURLException ex) {
+            s_logger.error("SAML could not convert " + urlString + " to a URL: ", ex);
+        }
+
+        return baseUrl;
+    }
+
+    public static String replaceBaseUrl(final String urlString, final String newBaseUrl) {
+        String newUrl = urlString;
+
+        try {
+            new URL(urlString);
+        } catch (MalformedURLException ex) {
+            s_logger.error("SAML could not convert " + urlString + " to a URL: ", ex);
+            return null;
+        }
+
+        if (!Strings.isNullOrEmpty(newBaseUrl)) {
+            newUrl.replace(getBaseUrl(urlString), newBaseUrl);
+        }
+
+        return newUrl;
     }
 
     public static String getCurrentUrl(final HttpServletRequest req) {
-        String absoluteUrl = getAbsoluteUrlPrefix(req);
+        String absoluteUrl = getBaseUrl(req);
 
         if (req.getRequestURI() != null) {
             absoluteUrl += req.getRequestURI();
