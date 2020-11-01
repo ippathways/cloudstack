@@ -82,7 +82,6 @@ public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableSe
     public void saveToken(String authnId, String domain, String entity, String samlNameId, String jsessionId);
     public void updateToken(SAMLTokenVO token);
     public SAMLTokenVO getToken(String authnId);
-    public SAMLTokenVO getTokenBySessionIndexAndNotSloUrl(String sessionIndex, String sloUrl);
-    public int removeTokensBySessionIndexAndSloUrl(String sessionIndex, String sloUrl);
+    public SAMLTokenVO getTokenBySessionIndexWhereNotSpBaseUrl(String sessionIndex, String spBaseUrl);
     public void expireTokens();
 }
