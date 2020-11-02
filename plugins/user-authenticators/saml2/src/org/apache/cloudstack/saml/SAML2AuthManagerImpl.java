@@ -98,9 +98,6 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     private SAMLProviderMetadata _spMetadata = new SAMLProviderMetadata();
     private Map<String, SAMLProviderMetadata> _idpMetadataMap = new HashMap<String, SAMLProviderMetadata>();
 
-    private String idpSingleSignOnUrl;
-    private String idpSingleLogOutUrl;
-
     private Timer _timer;
     private int _refreshInterval = SAMLPluginConstants.SAML_REFRESH_INTERVAL;
     private AbstractReloadingMetadataProvider _idpMetaDataProvider;
@@ -467,7 +464,7 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     }
 
     @Override
-    public void saveToken(String authnId, String domainPath, String entity, String samlNameId, String jsessionId) {
+    public void saveToken(String authnId, String domainPath, String entity, String sessionIndex, String spBaseUrl) {
         Long domainId = null;
         if (domainPath != null) {
             Domain domain = _domainMgr.findDomainByPath(domainPath);
@@ -475,7 +472,7 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
                 domainId = domain.getId();
             }
         }
-        SAMLTokenVO token = new SAMLTokenVO(authnId, domainId, entity, samlNameId, jsessionId);
+        SAMLTokenVO token = new SAMLTokenVO(authnId, domainId, entity, sessionIndex, spBaseUrl);
         if (_samlTokenDao.findByUuid(authnId) == null) {
             _samlTokenDao.persist(token);
         } else {
@@ -494,13 +491,8 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     }
 
     @Override
-    public SAMLTokenVO getTokenBySessionIndexAndNotSloUrl(String sessionIndex, String sloUrl) {
-        return _samlTokenDao.findBySessionIndexAndNotSloUrl(sessionIndex, sloUrl);
-    }
-
-    @Override
-    public int removeTokensBySessionIndexAndSloUrl(String sessionIndex, String sloUrl) {
-        return _samlTokenDao.removeBySessionIndexAndSloUrl(sessionIndex, sloUrl);
+    public SAMLTokenVO getTokenBySessionIndexWhereNotSpBaseUrl(String sessionIndex, String spBaseUrl) {
+        return _samlTokenDao.findBySessionIndexWhereNotSpBaseUrl(sessionIndex, spBaseUrl);
     }
 
     @Override
