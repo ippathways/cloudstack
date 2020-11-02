@@ -244,7 +244,6 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                     }
                 }
 
-
                 if (idpMetadata.getEncryptionCertificate() != null && spMetadata != null
                         && spMetadata.getKeyPair() != null && spMetadata.getKeyPair().getPrivate() != null) {
                     Credential credential = SecurityHelper.getSimpleCredential(idpMetadata.getEncryptionCertificate().getPublicKey(),
@@ -327,14 +326,14 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                                 userAccount.getDomainId(), null, remoteAddress, params);
                         SAMLUtils.setupSamlUserCookies(loginResponse, resp);
                         token.setSessionIndex(samlSessionIndex);
-                        token.setSloUrl(SAMLUtils.getAbsoluteUrlPrefix(req) + "/client/api?command=samlSlo");
+                        if(SAML2AuthManager.SAMLSupportHostnameAliases.value()) {
+                            token.setSpBaseUrl(SAMLUtils.getBaseUrl(req));
+                            s_logger.debug("Wrote SpBaseUrl to token table: " + token.getSpBaseUrl());
+                        }
                         _samlAuthManager.updateToken(token);
-                        s_logger.debug("Wrote SAML SessionIndex to token table: " + token.getSessionIndex());
-                        s_logger.debug("Wrote SloUrl to token table: " + token.getSloUrl());
                         session.setAttribute(SAMLPluginConstants.SAML_TOKEN, token);
                         session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, new SAMLActiveUser());
-                        final String redirectUrl = SAML2AuthManager.SAMLCloudStackRedirectionUrl.value();
-                        resp.sendRedirect(redirectUrl);
+                        SAMLUtils.redirectToSAMLCloudStackRedirectionUrl(resp, req);
                         return ApiResponseSerializer.toSerializedString(loginResponse, responseType);
                     }
                 } catch (CloudAuthenticationException | IOException exception) {
