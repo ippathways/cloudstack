@@ -18,6 +18,8 @@ package org.apache.cloudstack.api.command;
 
 import com.cloud.api.response.ApiResponseSerializer;
 import com.cloud.user.Account;
+import com.google.common.base.Strings;
+
 import org.apache.cloudstack.api.APICommand;
 import org.apache.cloudstack.api.ApiErrorCode;
 import org.apache.cloudstack.api.ApiServerService;
@@ -105,7 +107,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
 
         if (session == null && !(params != null && params.containsKey("SAMLRequest"))) {
             try {
-                resp.sendRedirect(SAML2AuthManager.SAMLCloudStackRedirectionUrl.value());
+                SAMLUtils.redirectToSAMLCloudStackRedirectionUrl(resp, req);
             } catch (IOException ignored) {
                 s_logger.info("[ignored] sending redirected failed.", ignored);
             }
@@ -145,7 +147,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
                 s_logger.error("SAMLResponse processing error: " + e.getMessage());
             }
             try {
-                resp.sendRedirect(SAML2AuthManager.SAMLCloudStackRedirectionUrl.value());
+                SAMLUtils.redirectToSAMLCloudStackRedirectionUrl(resp, req);
             } catch (IOException ignored) {
                 s_logger.info("[ignored] second redirected sending failed.", ignored);
             }
@@ -157,7 +159,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
         String nameId = (String) session.getAttribute(SAMLPluginConstants.SAML_NAMEID);
         if (idpMetadata == null || nameId == null || nameId.isEmpty()) {
             try {
-                resp.sendRedirect(SAML2AuthManager.SAMLCloudStackRedirectionUrl.value());
+                SAMLUtils.redirectToSAMLCloudStackRedirectionUrl(resp, req);
             } catch (IOException ignored) {
                 s_logger.info("[ignored] final redirected failed.", ignored);
             }
@@ -227,8 +229,9 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
                     }
                 }
                 final String samlSessionIndex = (session == null) ? null : ((SAMLTokenVO)session.getAttribute(SAMLPluginConstants.SAML_TOKEN)).getSessionIndex();
-                final SAMLTokenVO token = (targetSessionIndex == null) ? null : _samlAuthManager.getTokenBySessionIndexAndNotSloUrl(targetSessionIndex, currentUrl);
-                s_logger.debug("Current URL: " + currentUrl + " alt URL is " + ( (token == null) ? null : token.getSloUrl()));
+                final SAMLTokenVO token = (targetSessionIndex == null) ? null : _samlAuthManager.getTokenBySessionIndexWhereNotSpBaseUrl(targetSessionIndex, SAMLUtils.getBaseUrl(req));
+                final String altSloUrl = (token != null && !Strings.isNullOrEmpty(token.getSpBaseUrl())) ? SAMLUtils.replaceBaseUrl(currentUrl,token.getSpBaseUrl()) : null;
+                s_logger.debug("Current URL: " + currentUrl + " alt URL is " + altSloUrl);
                 s_logger.debug("SAML received Slo for Session Index " + targetSessionIndex + " user's current Session Index is " + samlSessionIndex);
                 if (targetSessionIndex == null) {
                     s_logger.debug("SAML SessionIndex missing from Slo request, sending failure");
@@ -246,7 +249,7 @@ public class SAML2LogoutAPIAuthenticatorCmd extends BaseCmd implements APIAuthen
                         s_logger.error("[ignored] SAML IOException sending Slo success to Idp.", ignored);
                     }
                 } else if (attempt++ < 2) {
-                    final String postUrl = (token != null) ? token.getSloUrl() : currentUrl;
+                    final String postUrl = (altSloUrl != null) ? altSloUrl : currentUrl;
                     s_logger.debug("SAML redirecting Slo request via post to " + postUrl + " (URL attempt " + attempt + ")");
                     return SAMLUtils.redirectToSloUrlViaPost(resp, postUrl, currentUrl, samlRequest, attempt);
                 } else {

@@ -20,16 +20,20 @@ package org.apache.cloudstack.saml;
 import javax.servlet.http.HttpSessionBindingListener;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSession;
+import javax.inject.Inject;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
-
+import org.springframework.stereotype.Component;
+@Component
 public class SAMLActiveUser implements HttpSessionBindingListener {
     private String id;
     private SAMLTokenVO token;
 
     private static final Logger s_logger = Logger.getLogger(SAMLActiveUser.class);
-    private static final SAMLTokenDao samlTokenDao = new SAMLTokenDaoImpl();
+
+    @Inject
+    private SAMLTokenDao samlTokenDao;
 
     @Override
     public void valueBound(HttpSessionBindingEvent event) {

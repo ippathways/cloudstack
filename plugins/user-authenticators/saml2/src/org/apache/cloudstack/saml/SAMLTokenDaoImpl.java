@@ -29,21 +29,14 @@ import java.sql.PreparedStatement;
 @DB
 @Component
 public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implements SAMLTokenDao {
-    protected final SearchBuilder<SAMLTokenVO> SessionIndexSearchAndNotSloUrl;
-    protected final SearchBuilder<SAMLTokenVO> SessionIndexAndSloUrlSearch;
+    protected final SearchBuilder<SAMLTokenVO> SessionIndexSearchNotSpBaseUrl;
 
     public SAMLTokenDaoImpl() {
         super();
-        SessionIndexSearchAndNotSloUrl = createSearchBuilder();
-        SessionIndexSearchAndNotSloUrl.and("session_index", SessionIndexSearchAndNotSloUrl.entity().getSessionIndex(), SearchCriteria.Op.EQ);
-        SessionIndexSearchAndNotSloUrl.and("slo_url", SessionIndexSearchAndNotSloUrl.entity().getSloUrl(), SearchCriteria.Op.NEQ);
-        SessionIndexSearchAndNotSloUrl.done();
-
-        SessionIndexAndSloUrlSearch = createSearchBuilder();
-        SessionIndexAndSloUrlSearch.and("session_index", SessionIndexAndSloUrlSearch.entity().getSessionIndex(), SearchCriteria.Op.EQ);
-        SessionIndexAndSloUrlSearch.and("slo_url", SessionIndexAndSloUrlSearch.entity().getSloUrl(), SearchCriteria.Op.EQ);
-        SessionIndexAndSloUrlSearch.done();
-
+        SessionIndexSearchNotSpBaseUrl = createSearchBuilder();
+        SessionIndexSearchNotSpBaseUrl.and("session_index", SessionIndexSearchNotSpBaseUrl.entity().getSessionIndex(), SearchCriteria.Op.EQ);
+        SessionIndexSearchNotSpBaseUrl.and("sp_base_url", SessionIndexSearchNotSpBaseUrl.entity().getSpBaseUrl(), SearchCriteria.Op.NEQ);
+        SessionIndexSearchNotSpBaseUrl.done();
     }
 
     @Override
@@ -62,18 +55,10 @@ public class SAMLTokenDaoImpl extends GenericDaoBase<SAMLTokenVO, Long> implemen
     }
 
     @Override
-    public SAMLTokenVO findBySessionIndexAndNotSloUrl(final String sessionIndex, final String sloUrl) {
-        SearchCriteria<SAMLTokenVO> sc = SessionIndexSearchAndNotSloUrl.create();
+    public SAMLTokenVO findBySessionIndexWhereNotSpBaseUrl(final String sessionIndex, final String spBaseUrl) {
+        SearchCriteria<SAMLTokenVO> sc = SessionIndexSearchNotSpBaseUrl.create();
         sc.setParameters("session_index", sessionIndex);
-        sc.setParameters("slo_url", sloUrl);
+        sc.setParameters("sp_base_url", spBaseUrl);
         return findOneBy(sc);
-    }
-
-    @Override
-    public int removeBySessionIndexAndSloUrl(final String sessionIndex, final String sloUrl) {
-        SearchCriteria<SAMLTokenVO> sc = SessionIndexAndSloUrlSearch.create();
-        sc.setParameters("session_index", sessionIndex);
-        sc.setParameters("slo_url", sloUrl);
-        return remove(sc);
     }
 }
