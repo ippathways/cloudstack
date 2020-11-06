@@ -35,12 +35,14 @@ import org.apache.cloudstack.api.auth.APIAuthenticationType;
 import org.apache.cloudstack.api.auth.APIAuthenticator;
 import org.apache.cloudstack.api.auth.PluggableAPIAuthenticator;
 import org.apache.cloudstack.api.response.LoginCmdResponse;
-import org.apache.cloudstack.saml.SAMLActiveUser;
+import org.apache.cloudstack.saml.SAMLTokenDao;
 import org.apache.cloudstack.saml.SAML2AuthManager;
 import org.apache.cloudstack.saml.SAMLPluginConstants;
 import org.apache.cloudstack.saml.SAMLProviderMetadata;
 import org.apache.cloudstack.saml.SAMLTokenVO;
 import org.apache.cloudstack.saml.SAMLUtils;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 import org.opensaml.DefaultBootstrap;
 import org.opensaml.saml2.core.Assertion;
@@ -66,6 +68,8 @@ import org.xml.sax.SAXException;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSessionBindingListener;
+import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSession;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
@@ -93,8 +97,6 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
     DomainManager _domainMgr;
     @Inject
     private UserAccountDao _userAccountDao;
-    @Inject
-    private SAMLActiveUser samlActiveUser;
 
     SAML2AuthManager _samlAuthManager;
 
@@ -334,7 +336,7 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                         }
                         _samlAuthManager.updateToken(token);
                         session.setAttribute(SAMLPluginConstants.SAML_TOKEN, token);
-                        session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, samlActiveUser);
+                        session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, new SAMLActiveUser());
                         SAMLUtils.redirectToSAMLCloudStackRedirectionUrl(resp, req);
                         return ApiResponseSerializer.toSerializedString(loginResponse, responseType);
                     }
@@ -365,6 +367,65 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
         }
         if (_samlAuthManager == null) {
             s_logger.error("No suitable Pluggable Authentication Manager found for SAML2 Login Cmd");
+        }
+    }
+
+    private class SAMLActiveUser implements HttpSessionBindingListener {
+        private String id;
+        private SAMLTokenVO token;
+
+        @Inject
+        private SAMLTokenDao samlTokenDao;
+
+        @Override
+        public void valueBound(HttpSessionBindingEvent event) {
+            final HttpSession session = event.getSession();
+            if (session != null) {
+                id = session.getId();
+                token = (SAMLTokenVO)session.getAttribute(SAMLPluginConstants.SAML_TOKEN);
+                if (token == null) {
+                    s_logger.error("token not found in session attributes");
+                } else {
+                    s_logger.debug("Bound listener to active SAML user with token ID of " + token.getId() + " and UUID of " + token.getUuid());
+                }
+            } else {
+                s_logger.error("event.getSession() returned null");
+            }
+        }
+
+        @Override
+        public void valueUnbound(HttpSessionBindingEvent event) {
+            if (token != null) {
+                s_logger.debug("Removing token with ID " + token.getId());
+                if (samlTokenDao == null) {
+                    s_logger.error("_samlTokenDao is null - can't remove token");
+                }
+                samlTokenDao.remove(token.getId());
+            }
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (obj == null || !(this.getClass().isInstance(obj))) {
+                return false;
+            }
+            if (obj == this) {
+                return true;
+            }
+            final SAMLActiveUser other = (SAMLActiveUser) obj;
+            return new EqualsBuilder().append(this.getId(), other.getId()).isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 31)
+                    .append(this.getClass())
+                    .append(id)
+                    .toHashCode();
         }
     }
 }
