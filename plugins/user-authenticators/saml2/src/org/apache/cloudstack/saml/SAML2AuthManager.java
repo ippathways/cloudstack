@@ -21,6 +21,7 @@ import com.cloud.utils.component.PluggableService;
 import org.apache.cloudstack.api.auth.PluggableAPIAuthenticator;
 import org.apache.cloudstack.framework.config.ConfigKey;
 
+import javax.servlet.http.HttpSession;
 import java.util.Collection;
 
 public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableService {
@@ -84,4 +85,5 @@ public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableSe
     public SAMLTokenVO getToken(String authnId);
     public SAMLTokenVO getTokenBySessionIndexWhereNotSpBaseUrl(String sessionIndex, String spBaseUrl);
     public void expireTokens();
+    public void attachTokenToSession(HttpSession session, SAMLTokenVO token);
 }

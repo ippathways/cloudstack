@@ -41,6 +41,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
 import javax.xml.stream.FactoryConfigurationError;
 
 import org.apache.cloudstack.api.command.AuthorizeSAMLSSOCmd;
@@ -88,6 +89,7 @@ import com.cloud.user.DomainManager;
 import com.cloud.user.User;
 import com.cloud.user.UserVO;
 import com.cloud.user.dao.UserDao;
+import com.cloud.utils.component.ComponentContext;
 import com.cloud.utils.PropertiesUtil;
 import com.cloud.utils.component.AdapterBase;
 
@@ -498,6 +500,13 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     @Override
     public void expireTokens() {
         _samlTokenDao.expireTokens();
+    }
+
+    public void attachTokenToSession(HttpSession session, SAMLTokenVO token) {
+        SAMLActiveUser samlActiveUser = new SAMLActiveUser();
+        samlActiveUser = ComponentContext.inject(samlActiveUser);
+        session.setAttribute(SAMLPluginConstants.SAML_TOKEN, token);
+        session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, samlActiveUser);
     }
 
     public Boolean isSAMLPluginEnabled() {
