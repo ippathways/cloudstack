@@ -20,7 +20,6 @@ package org.apache.cloudstack.saml;
 import javax.servlet.http.HttpSessionBindingListener;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSession;
-import javax.inject.Inject;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
@@ -32,9 +31,11 @@ public class SAMLActiveUser implements HttpSessionBindingListener {
     private SAMLTokenVO token;
 
     private static final Logger s_logger = Logger.getLogger(SAMLActiveUser.class);
-
-    @Inject
     private SAMLTokenDao samlTokenDao;
+
+    public SAMLActiveUser (SAMLTokenDao samlTokenDao){
+        this.samlTokenDao = samlTokenDao;
+    }
 
     @Override
     public void valueBound(HttpSessionBindingEvent event) {
