@@ -62,6 +62,7 @@ import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.validation.ValidationException;
 import org.xml.sax.SAXException;
 
+import java.security.PublicKey;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -243,10 +244,14 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                     }
                 }
 
-                if (idpMetadata.getEncryptionCertificate() != null && spMetadata != null
-                        && spMetadata.getKeyPair() != null && spMetadata.getKeyPair().getPrivate() != null) {
-                    Credential credential = SecurityHelper.getSimpleCredential(idpMetadata.getEncryptionCertificate().getPublicKey(),
-                            spMetadata.getKeyPair().getPrivate());
+                if ( (idpMetadata.getEncryptionCertificate() != null || idpMetadata.getSigningCertificate() != null && SAML2AuthManager.SAMLDecryptWithSigningKey.value())
+                        && spMetadata != null && spMetadata.getKeyPair() != null && spMetadata.getKeyPair().getPrivate() != null) {
+                    final PublicKey encryptionPublicKey = (idpMetadata.getEncryptionCertificate() == null) ? idpMetadata.getSigningCertificate().getPublicKey() : idpMetadata.getEncryptionCertificate().getPublicKey();
+                    // Temp
+                    if (idpMetadata.getEncryptionCertificate() == null) {
+                        s_logger.debug("SAML using signing key for decryption");
+                    }
+                    Credential credential = SecurityHelper.getSimpleCredential(encryptionPublicKey, spMetadata.getKeyPair().getPrivate());
                     StaticKeyInfoCredentialResolver keyInfoResolver = new StaticKeyInfoCredentialResolver(credential);
                     EncryptedKeyResolver keyResolver = new InlineEncryptedKeyResolver();
                     Decrypter decrypter = new Decrypter(null, keyInfoResolver, keyResolver);
