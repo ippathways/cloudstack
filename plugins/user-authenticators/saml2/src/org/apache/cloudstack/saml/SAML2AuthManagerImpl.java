@@ -89,6 +89,7 @@ import com.cloud.user.DomainManager;
 import com.cloud.user.User;
 import com.cloud.user.UserVO;
 import com.cloud.user.dao.UserDao;
+import com.cloud.utils.component.ComponentContext;
 import com.cloud.utils.PropertiesUtil;
 import com.cloud.utils.component.AdapterBase;
 
@@ -118,9 +119,6 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
 
     @Inject
     DomainManager _domainMgr;
-
-    @Inject
-    SAMLActiveUser samlActiveUser;
 
     @Override
     public boolean start() {
@@ -505,6 +503,8 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     }
 
     public void attachTokenToSession(HttpSession session, SAMLTokenVO token) {
+        SAMLActiveUser samlActiveUser = new SAMLActiveUser();
+        samlActiveUser = ComponentContext.inject(SAMLActiveUser.class);
         session.setAttribute(SAMLPluginConstants.SAML_TOKEN, token);
         session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, samlActiveUser);
     }
