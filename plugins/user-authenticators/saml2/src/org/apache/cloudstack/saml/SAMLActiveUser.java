@@ -16,7 +16,7 @@
 // under the License.
 
 package org.apache.cloudstack.saml;
-import com.cloud.utils.db.DB;
+/*import com.cloud.utils.db.DB;*/
 import javax.servlet.http.HttpSessionBindingListener;
 import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSession;
@@ -25,8 +25,8 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
+
 @Component
-@DB
 public class SAMLActiveUser implements HttpSessionBindingListener {
     private String id;
     private SAMLTokenVO token;

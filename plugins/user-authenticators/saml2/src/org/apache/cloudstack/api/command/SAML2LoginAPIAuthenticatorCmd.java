@@ -23,6 +23,7 @@ import com.cloud.user.DomainManager;
 import com.cloud.user.UserAccount;
 import com.cloud.user.UserAccountVO;
 import com.cloud.user.dao.UserAccountDao;
+import com.cloud.utils.component.ComponentContext;
 import com.cloud.utils.db.EntityManager;
 import org.apache.cloudstack.api.APICommand;
 import org.apache.cloudstack.api.ApiConstants;
@@ -93,8 +94,6 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
     DomainManager _domainMgr;
     @Inject
     private UserAccountDao _userAccountDao;
-    @Inject
-    private SAMLActiveUser samlActiveUser;
 
     SAML2AuthManager _samlAuthManager;
 
@@ -333,6 +332,8 @@ public class SAML2LoginAPIAuthenticatorCmd extends BaseCmd implements APIAuthent
                             s_logger.debug("Wrote SpBaseUrl to token table: " + token.getSpBaseUrl());
                         }
                         _samlAuthManager.updateToken(token);
+                        SAMLActiveUser samlActiveUser = new SAMLActiveUser();
+                        samlActiveUser = ComponentContext.inject(samlActiveUser);
                         session.setAttribute(SAMLPluginConstants.SAML_TOKEN, token);
                         session.setAttribute(SAMLPluginConstants.SAML_SESSION_LISTENER, samlActiveUser);
                         SAMLUtils.redirectToSAMLCloudStackRedirectionUrl(resp, req);
