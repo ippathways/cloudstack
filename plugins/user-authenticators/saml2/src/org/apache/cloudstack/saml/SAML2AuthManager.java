@@ -26,9 +26,6 @@ import java.util.Collection;
 
 public interface SAML2AuthManager extends PluggableAPIAuthenticator, PluggableService {
 
-    public static final ConfigKey<Boolean> SAMLDecryptWithSigningKey = new ConfigKey<Boolean>("Advanced", Boolean.class, "saml2.decryptWithSigningKey.enabled", "false",
-            "If IDP Metadata doesn't include a encryption key, attempt decryption using signing key if it exists.", true);
-
     public static final ConfigKey<Boolean> SAMLIsPluginEnabled = new ConfigKey<Boolean>("Advanced", Boolean.class, "saml2.enabled", "false",
             "Indicates whether SAML SSO plugin is enabled or not", true);
 

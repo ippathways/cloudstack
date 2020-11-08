@@ -543,7 +543,7 @@ public class SAML2AuthManagerImpl extends AdapterBase implements SAML2AuthManage
     @Override
     public ConfigKey<?>[] getConfigKeys() {
         return new ConfigKey<?>[] {
-                SAMLDecryptWithSigningKey, SAMLIsPluginEnabled, SAMLServiceProviderID,
+                SAMLIsPluginEnabled, SAMLServiceProviderID,
                 SAMLServiceProviderContactPersonName, SAMLServiceProviderContactEmail,
                 SAMLServiceProviderOrgName, SAMLServiceProviderOrgUrl,
                 SAMLServiceProviderSingleSignOnURL, SAMLServiceProviderSingleLogOutURL,
