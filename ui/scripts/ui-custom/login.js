@@ -148,7 +148,7 @@
             var selectedOption = $login.find('#login-options').find(':selected').val();
             toggleLoginView(selectedOption);
             if (selectedOption && selectedOption !== '') {
-                $.cookie('login-option', selectedOption);
+                $.cookie('login-option', selectedOption, {expires: 90});
             }
         });
 
