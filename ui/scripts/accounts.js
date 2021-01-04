@@ -2234,6 +2234,9 @@
             if (jsonObj.username == g_username) { //selected user is self
                 allowedActions.push("changePassword");
                 allowedActions.push("generateKeys");
+                if (g_idpList) {
+                    allowedActions.push("configureSamlAuthorization");
+                }
             } else if (isDomainAdmin()) { //if selected user is not self, and the current login is domain-admin
                 allowedActions.push("edit");
                 if (jsonObj.state == "enabled")
