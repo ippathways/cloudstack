@@ -19,3 +19,6 @@
 -- Schema upgrade from 4.15.1.0 to 4.16.0.0
 --;
 
+ALTER TABLE `cloud`.`s2s_customer_gateway` ADD COLUMN `ike_version` varchar(5) NOT NULL DEFAULT 'ike' COMMENT 'one of ike, ikev1, ikev2';
+ALTER TABLE `cloud`.`s2s_customer_gateway` ADD COLUMN `split_connections` int(1) NOT NULL DEFAULT 0;
+
