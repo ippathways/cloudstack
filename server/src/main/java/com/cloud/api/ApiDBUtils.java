@@ -311,6 +311,7 @@ import com.cloud.user.dao.UserStatisticsDao;
 import com.cloud.uservm.UserVm;
 import com.cloud.utils.EnumUtils;
 import com.cloud.utils.Pair;
+import com.cloud.utils.StringUtils;
 import com.cloud.vm.ConsoleProxyVO;
 import com.cloud.vm.DomainRouterVO;
 import com.cloud.vm.InstanceGroup;
@@ -1142,6 +1143,10 @@ public class ApiDBUtils {
         return s_userDao.findById(userId);
     }
 
+    public static UserAccountJoinVO findUserAccountById(Long id) {
+        return s_userAccountJoinDao.findById(id);
+    }
+
     public static UserVm findUserVmById(Long vmId) {
         return s_userVmDao.findById(vmId);
     }
@@ -1567,6 +1572,10 @@ public class ApiDBUtils {
         return s_vpcDao.findById(vpcId);
     }
 
+    public static VpcVO findVpcByIdIncludingRemoved(long vpcId) {
+        return s_vpcDao.findByIdIncludingRemoved(vpcId);
+    }
+
     public static SnapshotPolicy findSnapshotPolicyById(long policyId) {
         return s_snapshotPolicyDao.findById(policyId);
     }
@@ -1728,7 +1737,17 @@ public class ApiDBUtils {
     ///////////////////////////////////////////////////////////////////////
 
     public static DomainRouterResponse newDomainRouterResponse(DomainRouterJoinVO vr, Account caller) {
-        return s_domainRouterJoinDao.newDomainRouterResponse(vr, caller);
+        DomainRouterResponse response = s_domainRouterJoinDao.newDomainRouterResponse(vr, caller);
+        if (StringUtils.isBlank(response.getHypervisor())) {
+            VMInstanceVO vm = ApiDBUtils.findVMInstanceById(vr.getId());
+            if (vm.getLastHostId() != null) {
+                HostVO lastHost = ApiDBUtils.findHostById(vm.getLastHostId());
+                if (lastHost != null) {
+                    response.setHypervisor(lastHost.getHypervisorType().toString());
+                }
+            }
+        }
+        return  response;
     }
 
     public static DomainRouterResponse fillRouterDetails(DomainRouterResponse vrData, DomainRouterJoinVO vr) {
@@ -1833,6 +1852,7 @@ public class ApiDBUtils {
     }
 
     public static List<ProjectJoinVO> newProjectView(Project proj) {
+
         return s_projectJoinDao.newProjectView(proj);
     }
 
@@ -1999,16 +2019,16 @@ public class ApiDBUtils {
         return s_templateJoinDao.newUpdateResponse(vr);
     }
 
-    public static TemplateResponse newTemplateResponse(ResponseView view, TemplateJoinVO vr) {
-        return s_templateJoinDao.newTemplateResponse(view, vr);
+    public static TemplateResponse newTemplateResponse(EnumSet<DomainDetails> detailsView, ResponseView view, TemplateJoinVO vr) {
+        return s_templateJoinDao.newTemplateResponse(detailsView, view, vr);
     }
 
     public static TemplateResponse newIsoResponse(TemplateJoinVO vr) {
         return s_templateJoinDao.newIsoResponse(vr);
     }
 
-    public static TemplateResponse fillTemplateDetails(ResponseView view, TemplateResponse vrData, TemplateJoinVO vr) {
-        return s_templateJoinDao.setTemplateResponse(view, vrData, vr);
+    public static TemplateResponse fillTemplateDetails(EnumSet<DomainDetails> detailsView, ResponseView view, TemplateResponse vrData, TemplateJoinVO vr) {
+        return s_templateJoinDao.setTemplateResponse(detailsView, view, vrData, vr);
     }
 
     public static List<TemplateJoinVO> newTemplateView(VirtualMachineTemplate vr) {
