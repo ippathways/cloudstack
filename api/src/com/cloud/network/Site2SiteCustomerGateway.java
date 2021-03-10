@@ -47,5 +47,9 @@ public interface Site2SiteCustomerGateway extends ControlledEntity, Identity, In
 
     public String getIkeVersion();
 
+    public String remoteId();
+
+    public String remoteIdType();
+
     String getName();
 }
