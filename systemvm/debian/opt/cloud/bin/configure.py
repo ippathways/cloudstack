@@ -547,7 +547,6 @@ class CsSite2SiteVpn(CsDataBag):
         if splitconnections:
             logging.debug('Splitting rightsubnets %s' % peerlistarr)
             peerlist = peerlistarr[0]
-
         if rightpeer in self.confips:
             self.confips.remove(rightpeer)
         file = CsFile(vpnconffile)
@@ -558,6 +557,16 @@ class CsSite2SiteVpn(CsDataBag):
         file.addeq(" leftsubnet=%s" % obj['local_guest_cidr'])
         file.addeq(" right=%s" % rightpeer)
         file.addeq(" rightsubnet=%s" % peerlist)
+        if remoteidtype.lower() == 'auto':
+            file.addeq(" rightid=%s" % remoteid)
+        elif remoteidtype.lower() == 'allow any':
+            file.addeq(" rightid=\%any")
+        elif remoteidtype.lower() == 'fqdn':
+            file.addeq(" rightid=@%s" % remoteid)
+        elif remoteidtype.lower() == 'key_id':
+            file.addeq(" rightid=@#%s" % remoteid)
+        elif remoteidtype.lower() == 'user_fqdn':
+            file.addeq(" rightid=@@%s" % remoteid)
         file.addeq(" type=tunnel")
         file.addeq(" authby=secret")
         file.addeq(" keyexchange=%s" % ikeversion)
