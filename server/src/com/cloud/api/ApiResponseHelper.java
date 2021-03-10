@@ -3148,6 +3148,8 @@ public class ApiResponseHelper implements ResponseGenerator {
         response.setRemoved(result.getRemoved());
         response.setIkeVersion(result.getIkeVersion());
         response.setSplitConnections(result.getSplitConnections());
+        response.setRemoteId(result.getRemoteId());
+        response.setRemoteIdType(result.getRemoteIdType());
         response.setObjectName("vpncustomergateway");
 
         populateAccount(response, result.getAccountId());
@@ -3189,6 +3191,8 @@ public class ApiResponseHelper implements ResponseGenerator {
                 response.setEncap(customerGateway.getEncap());
                 response.setIkeVersion(customerGateway.getIkeVersion());
                 response.setSplitConnections(customerGateway.getSplitConnections());
+                response.setRemoteId(customerGateway.getRemoteId());
+                response.setRemoteIdType(customerGateway.getRemoteIdType());
             }
         }
 
