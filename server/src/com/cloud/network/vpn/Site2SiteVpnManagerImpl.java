@@ -247,7 +247,7 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
 
         String remoteIdType = cmd.getRemoteIdType();
         if (remoteIdType == null) {
-            remoteIdType = "Auto";
+            remoteIdType = "auto";
         }
 
         checkCustomerGatewayCidrList(peerCidrList);
@@ -506,7 +506,7 @@ public class Site2SiteVpnManagerImpl extends ManagerBase implements Site2SiteVpn
 
         String remoteIdType = cmd.getRemoteIdType();
         if (remoteIdType == null) {
-            remoteIdType = "Auto";
+            remoteIdType = "auto";
         }
 
         checkCustomerGatewayCidrList(guestCidrList);
