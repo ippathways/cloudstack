@@ -557,7 +557,7 @@ class CsSite2SiteVpn(CsDataBag):
         file.addeq(" leftsubnet=%s" % obj['local_guest_cidr'])
         file.addeq(" right=%s" % rightpeer)
         file.addeq(" rightsubnet=%s" % peerlist)
-        if remoteidtype.lower() == 'auto':
+        if remoteidtype.lower() == 'auto' and remoteid is not None:
             file.addeq(" rightid=%s" % remoteid)
         elif remoteidtype.lower() == 'allow any':
             file.addeq(" rightid=\%any")
