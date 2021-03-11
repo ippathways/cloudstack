@@ -86,7 +86,7 @@ public class Site2SiteCustomerGatewayVO implements Site2SiteCustomerGateway {
     private String ikeVersion;
 
     @Column(name = "remote_id")
-    private boolean remoteId;
+    private String remoteId;
 
     @Column(name = "remote_id_type")
     private String remoteIdType;
