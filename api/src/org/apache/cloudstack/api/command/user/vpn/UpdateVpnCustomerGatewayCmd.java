@@ -159,7 +159,7 @@ public class UpdateVpnCustomerGatewayCmd extends BaseAsyncCmd {
     public String getIkeVersion() {
         return ikeVersion;
     }
-    
+
     public String getRemoteId() {
         return remoteId;
     }
