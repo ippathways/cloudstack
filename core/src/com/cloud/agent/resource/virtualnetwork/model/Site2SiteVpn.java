@@ -181,11 +181,11 @@ public class Site2SiteVpn extends ConfigBase {
         this.ikeVersion = ikeVersion;
     }
 
-    public boolean getRemoteId() {
+    public String getRemoteId() {
         return remoteId;
     }
 
-    public void setRemoteId(boolean remoteId) {
+    public void setRemoteId(String remoteId) {
         this.remoteId = remoteId;
     }
 
