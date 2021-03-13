@@ -211,6 +211,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
     @Override
     public boolean deployCertificate(final Host host, final Certificate certificate, final Boolean reconnect, final Map<String, String> sshAccessDetails) throws AgentUnavailableException, OperationTimedoutException {
+        LOG.debug("Deploying certificate for host id: " + host.getId());
         final SetupCertificateCommand cmd = new SetupCertificateCommand(certificate);
         if (sshAccessDetails != null && !sshAccessDetails.isEmpty()) {
             cmd.setAccessDetail(sshAccessDetails);
@@ -218,20 +219,26 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         CallContext.current().setEventDetails("deploying certificate for host id: " + host.getId());
         final SetupCertificateAnswer answer = (SetupCertificateAnswer) agentManager.send(host.getId(), cmd);
         if (answer.getResult()) {
+            LOG.debug("Deploying certificate for host id: " + host.getId() + " was successful");
             CallContext.current().setEventDetails("successfully deployed certificate for host id: " + host.getId());
         } else {
+            LOG.debug("Deploying certificate for host id: " + host.getId() + " was NOT successful");
             CallContext.current().setEventDetails("failed to deploy certificate for host id: " + host.getId());
         }
 
         if (answer.getResult()) {
+            LOG.debug("Adding certificate for host id: " + host.getId() + " to certMap.  Curent certMap size is " + getActiveCertificatesMap().size());
             getActiveCertificatesMap().put(host.getPrivateIpAddress(), certificate.getClientCertificate());
+            LOG.debug("Finished certificate for host id: " + host.getId() + " to certMap.  New certMap size is " + getActiveCertificatesMap().size());
             if (sshAccessDetails == null && reconnect != null && reconnect) {
                 LOG.info(String.format("Successfully setup certificate on host, reconnecting with agent with id=%d, name=%s, address=%s",
                         host.getId(), host.getName(), host.getPublicIpAddress()));
                 return agentManager.reconnect(host.getId());
             }
+            LOG.debug("End of deployCertificate for host id: " + host.getId() + " returning true");
             return true;
         }
+        LOG.debug("End of deployCertificate for host id: " + host.getId() + " returning false");
         return false;
     }
 
