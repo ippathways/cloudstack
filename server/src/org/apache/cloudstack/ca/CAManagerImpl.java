@@ -132,6 +132,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
     @Override
     public Map<String, X509Certificate> getActiveCertificatesMap() {
+        LOG.debug("returning activeCertMap with current size of " + activeCertMap.size());
         return activeCertMap;
     }
 

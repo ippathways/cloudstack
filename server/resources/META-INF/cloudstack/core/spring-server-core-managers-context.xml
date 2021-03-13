@@ -289,7 +289,7 @@
     <bean id="imageStoreUploadMonitorImpl" class="com.cloud.storage.ImageStoreUploadMonitorImpl" />
 
     <!-- the new CA manager -->
-    <bean id="caManager" class="org.apache.cloudstack.ca.CAManagerImpl" scope="singleton">
+    <bean id="caManager" class="org.apache.cloudstack.ca.CAManagerImpl">
         <property name="caProviders" value="#{caProvidersRegistry.registered}" />
     </bean>
 
