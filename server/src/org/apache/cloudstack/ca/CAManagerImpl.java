@@ -303,18 +303,24 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
                 LOG.debug("CA background task is running...");
                 final DateTime now = DateTime.now(DateTimeZone.UTC);
                 final Map<String, X509Certificate> certsMap = caManager.getActiveCertificatesMap();
+                LOG.debug("CA background task: found " + certsMap.size() + " certMap entries to check");
                 for (final Iterator<Map.Entry<String, X509Certificate>> it = certsMap.entrySet().iterator(); it.hasNext(); ) {
                     final Map.Entry<String, X509Certificate> entry = it.next();
                     if (entry == null) {
+                        LOG.debug("CA background task: skipping null certMap entry");
                         continue;
                     }
                     final String hostIp = entry.getKey();
+                    LOG.debug("CA background task: checking cert with hostIp of " + hostIp);
                     final X509Certificate certificate = entry.getValue();
                     if (certificate == null) {
+                        LOG.debug("CA background task: " + hostIp + " cert is null");
                         it.remove();
                         continue;
                     }
+                    LOG.debug("CA background task: " + hostIp + " cert has subjectDN of " + entry.getValue().getSubjectDN().getName());
                     final Host host = hostDao.findByIp(hostIp);
+
                     if (host == null || host.getManagementServerId() == null ||
                             host.getManagementServerId() != ManagementServerNode.getManagementServerId() ||
                             host.getStatus() != Status.Up) {
@@ -328,7 +334,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
                     final String hostDescription = String.format("host id=%d, uuid=%s, name=%s, ip=%s, zone id=%d",
                             host.getId(), host.getUuid(), host.getName(), hostIp, host.getDataCenterId());
-
+                    LOG.debug("CA background task: " + hostIp + " has hostDescription of " + hostDescription);
                     try {
                         LOG.debug("Checking certificate expiration for " + hostDescription);
                         certificate.checkValidity(now.plusDays(CertExpiryAlertPeriod.valueIn(host.getClusterId())).toDate());
@@ -366,6 +372,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
             } catch (final Throwable t) {
                 LOG.error("Error trying to run CA background task", t);
             }
+            LOG.debug("CA background task is finished...");
         }
 
         @Override
