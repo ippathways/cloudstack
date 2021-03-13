@@ -297,9 +297,10 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         @Override
         protected void runInContext() {
             try {
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("CA background task is running...");
-                }
+                //if (LOG.isTraceEnabled()) {
+                //    LOG.trace("CA background task is running...");
+                //}
+                LOG.debug("CA background task is running...");
                 final DateTime now = DateTime.now(DateTimeZone.UTC);
                 final Map<String, X509Certificate> certsMap = caManager.getActiveCertificatesMap();
                 for (final Iterator<Map.Entry<String, X509Certificate>> it = certsMap.entrySet().iterator(); it.hasNext(); ) {
@@ -329,7 +330,9 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
                             host.getId(), host.getUuid(), host.getName(), hostIp, host.getDataCenterId());
 
                     try {
+                        LOG.debug("Checking certificate expiration for " + hostDescription);
                         certificate.checkValidity(now.plusDays(CertExpiryAlertPeriod.valueIn(host.getClusterId())).toDate());
+                        LOG.debug("Certificate is valid until " + certificate.getNotAfter().toString());
                     } catch (final CertificateExpiredException | CertificateNotYetValidException e) {
                         LOG.warn("Certificate is going to expire for " + hostDescription);
                         if (AutomaticCertRenewal.valueIn(host.getClusterId())) {
