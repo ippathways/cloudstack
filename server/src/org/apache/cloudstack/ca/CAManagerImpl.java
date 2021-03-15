@@ -132,6 +132,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
     @Override
     public Map<String, X509Certificate> getActiveCertificatesMap() {
+        LOG.debug("returning activeCertMap with current size of " + activeCertMap.size());
         return activeCertMap;
     }
 
@@ -240,14 +241,17 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         if (host == null) {
             return;
         }
+        LOG.debug("Purging cert for " + host.getName());
         final String privateAddress = host.getPrivateIpAddress();
         final String publicAddress = host.getPublicIpAddress();
         final Map<String, X509Certificate> activeCertsMap = getActiveCertificatesMap();
         if (!Strings.isNullOrEmpty(privateAddress) && activeCertsMap.containsKey(privateAddress)) {
             activeCertsMap.remove(privateAddress);
+            LOG.debug("Purged cert for private address " + privateAddress);
         }
         if (!Strings.isNullOrEmpty(publicAddress) && activeCertsMap.containsKey(publicAddress)) {
             activeCertsMap.remove(publicAddress);
+            LOG.debug("Purged cert for public address " + publicAddress);
         }
     }
 
@@ -297,16 +301,18 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         @Override
         protected void runInContext() {
             try {
-                if (LOG.isTraceEnabled()) {
-                    LOG.trace("CA background task is running...");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("CA background task is running...");
                 }
                 final DateTime now = DateTime.now(DateTimeZone.UTC);
                 final Map<String, X509Certificate> certsMap = caManager.getActiveCertificatesMap();
+                LOG.debug("Received activeCertMap size of " + certsMap.size());
                 for (final Iterator<Map.Entry<String, X509Certificate>> it = certsMap.entrySet().iterator(); it.hasNext(); ) {
                     final Map.Entry<String, X509Certificate> entry = it.next();
                     if (entry == null) {
                         continue;
                     }
+                    LOG.debug("Starting cert renewal check of " + entry.getKey());
                     final String hostIp = entry.getKey();
                     final X509Certificate certificate = entry.getValue();
                     if (certificate == null) {

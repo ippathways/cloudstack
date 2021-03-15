@@ -124,8 +124,11 @@ public final class RootCACustomTrustManager implements X509TrustManager {
             LOG.error(errorMsg);
             throw new CertificateException(errorMsg);
         }
+
+        LOG.debug("Considering adding item to activeCertMap " + clientAddress + " current size of activeCertMap is " + activeCertMap.size());
         if (activeCertMap != null && !Strings.isNullOrEmpty(clientAddress)) {
             activeCertMap.put(clientAddress, primaryClientCertificate);
+            LOG.debug("Added item to activeCertMap " + clientAddress + " new size of activeCertMap is " + activeCertMap.size());
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("Client/agent connection from ip=" + clientAddress + " has been validated and trusted.");
