@@ -253,9 +253,11 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         final Map<String, X509Certificate> activeCertsMap = getActiveCertificatesMap();
         if (!Strings.isNullOrEmpty(privateAddress) && activeCertsMap.containsKey(privateAddress)) {
             activeCertsMap.remove(privateAddress);
+            LOG.debug("purging host certificate for " + host.getPrivateIpAddress());
         }
         if (!Strings.isNullOrEmpty(publicAddress) && activeCertsMap.containsKey(publicAddress)) {
             activeCertsMap.remove(publicAddress);
+            LOG.debug("purging host certificate for " + host.getPrivateIpAddress());
         }
     }
 
