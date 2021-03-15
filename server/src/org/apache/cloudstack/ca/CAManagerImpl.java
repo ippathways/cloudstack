@@ -192,6 +192,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
                 return false;
             }
             final Certificate certificate = issueCertificate(csr, Arrays.asList(host.getName(), host.getPrivateIpAddress()), Arrays.asList(host.getPrivateIpAddress(), host.getPublicIpAddress(), host.getStorageIpAddress()), CAManager.CertValidityPeriod.value(), caProvider);
+            LOG.debug("Calling deployCertificate from provisionCertificate");
             return deployCertificate(host, certificate, reconnect, null);
         } catch (final AgentUnavailableException | OperationTimedoutException e) {
             LOG.error("Host/agent is not available or operation timed out, failed to setup keystore and generate CSR for host/agent id=" + host.getId() + ", due to: ", e);
@@ -250,6 +251,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         }
         final String privateAddress = host.getPrivateIpAddress();
         final String publicAddress = host.getPublicIpAddress();
+        LOG.debug("Calling getActiveCertificatesMap from purgeHostCertificate");
         final Map<String, X509Certificate> activeCertsMap = getActiveCertificatesMap();
         if (!Strings.isNullOrEmpty(privateAddress) && activeCertsMap.containsKey(privateAddress)) {
             activeCertsMap.remove(privateAddress);
@@ -278,6 +280,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
         if (Strings.isNullOrEmpty(remoteAddress)) {
             throw new CloudRuntimeException("Remote client address connecting to mgmt server cannot be empty/null");
         }
+        LOG.debug("Calling getActiveCertificatesMap from createSSLEngine");
         return getConfiguredCaProvider().createSSLEngine(sslContext, remoteAddress, getActiveCertificatesMap());
     }
 

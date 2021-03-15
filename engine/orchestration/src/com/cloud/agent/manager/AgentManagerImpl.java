@@ -825,6 +825,7 @@ public class AgentManagerImpl extends ManagerBase implements AgentManager, Handl
                     s_logger.debug("The next status of agent " + hostId + " is " + nextStatus + ", current status is " + currentStatus);
                 }
             }
+            s_logger.debug("calling purgeHostCertificate from handleDisconnectWithoutInvestigation");
             caService.purgeHostCertificate(host);
         }
 

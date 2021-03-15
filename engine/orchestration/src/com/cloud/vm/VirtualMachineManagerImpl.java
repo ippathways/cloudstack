@@ -930,6 +930,7 @@ public class VirtualMachineManagerImpl extends ManagerBase implements VirtualMac
             ipAddressDetails.remove(NetworkElementCommand.ROUTER_NAME);
             final Certificate certificate = caManager.issueCertificate(csr, Arrays.asList(vm.getHostName(), vm.getInstanceName()),
                     new ArrayList<>(ipAddressDetails.values()), CAManager.CertValidityPeriod.value(), null);
+            s_logger.debug("Calling deployCertificate from setupAgentSecurity");
             final boolean result = caManager.deployCertificate(vmHost, certificate, false, sshAccessDetails);
             if (!result) {
                 s_logger.error("Failed to setup certificate for system vm: " + vm.getInstanceName());

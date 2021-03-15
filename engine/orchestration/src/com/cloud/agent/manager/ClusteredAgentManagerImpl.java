@@ -515,6 +515,7 @@ public class ClusteredAgentManagerImpl extends AgentManagerImpl implements Clust
                     ch1.socket().setSoTimeout(60 * 1000);
                     try {
                         SSLContext sslContext = Link.initManagementSSLContext(caService);
+                        s_logger.debug("calling createSSLEngine from connectToPeer");
                         sslEngine = sslContext.createSSLEngine(ip, port);
                         sslEngine.setUseClientMode(true);
                         sslEngine.setEnabledProtocols(SSLUtils.getSupportedProtocols(sslEngine.getEnabledProtocols()));
