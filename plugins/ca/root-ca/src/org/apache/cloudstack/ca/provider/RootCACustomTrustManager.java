@@ -109,10 +109,11 @@ public final class RootCACustomTrustManager implements X509TrustManager {
 
         // Ownership check
         boolean certMatchesOwnership = false;
+        LOG.debug("check client cert: checking SANs for clientAddress " + clientAddress);
         if (primaryClientCertificate.getSubjectAlternativeNames() != null) {
-            LOG.debug("check client cert: SANs exists.  clientAddress is " + clientAddress);
+            LOG.debug("check client cert: " + primaryClientCertificate.getSubjectAlternativeNames().size() + " names to check.");
             for (final List<?> list : primaryClientCertificate.getSubjectAlternativeNames()) {
-                LOG.debug("check client cert: Number of SANs is " + list.size() + "; first item is " + list.get(1));
+                LOG.debug("check client cert: current SAN has " + list.size() + " items; 2nd item is " + list.get(1));
                 if (list != null && list.size() == 2 && list.get(1) instanceof String) {
                     final String alternativeName = (String) list.get(1);
                     if (clientAddress.equals(alternativeName)) {
