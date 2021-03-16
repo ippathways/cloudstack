@@ -1988,6 +1988,8 @@ public class QueryManagerImpl extends MutualExclusiveIdsManagerBase implements Q
 
         Filter searchFilter = new Filter(AccountJoinVO.class, "id", true, cmd.getStartIndex(), cmd.getPageSizeVal());
 
+        searchFilter.addOrderBy(AccountJoinVO.class,"accountName", true);
+
         Object type = cmd.getAccountType();
         Object state = cmd.getState();
         Object isCleanupRequired = cmd.isCleanupRequired();
