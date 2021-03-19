@@ -132,7 +132,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
     @Override
     public Map<String, X509Certificate> getActiveCertificatesMap() {
-        LOG.debug("returning activeCertMap with size of " + activeCertMap.size())
+        LOG.debug("returning activeCertMap with size of " + activeCertMap.size());
         return activeCertMap;
     }
 
@@ -330,7 +330,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
                     final String hostDescription = String.format("host id=%d, uuid=%s, name=%s, ip=%s, zone id=%d",
                             host.getId(), host.getUuid(), host.getName(), hostIp, host.getDataCenterId());
-                    LOG.debug("cert renewal background task hostDescription: " + hostDescription)
+                    LOG.debug("cert renewal background task hostDescription: " + hostDescription);
                     try {
                         certificate.checkValidity(now.plusDays(CertExpiryAlertPeriod.valueIn(host.getClusterId())).toDate());
                     } catch (final CertificateExpiredException | CertificateNotYetValidException e) {
