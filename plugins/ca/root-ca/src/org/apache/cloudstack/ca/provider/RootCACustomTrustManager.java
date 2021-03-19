@@ -129,6 +129,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
             }
         }
         if (primaryClientCertificate != null && activeCertMap != null && !Strings.isNullOrEmpty(clientAddress)) {
+            LOG.debug("Adding " + clientAddress + " to activeCertMap");
             activeCertMap.put(clientAddress, primaryClientCertificate);
         }
     }

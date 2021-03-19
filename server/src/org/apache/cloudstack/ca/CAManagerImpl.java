@@ -132,6 +132,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
     @Override
     public Map<String, X509Certificate> getActiveCertificatesMap() {
+        LOG.debug("returning activeCertMap with size of " + activeCertMap.size())
         return activeCertMap;
     }
 
@@ -302,7 +303,9 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
                 }
                 final DateTime now = DateTime.now(DateTimeZone.UTC);
                 final Map<String, X509Certificate> certsMap = caManager.getActiveCertificatesMap();
+                int i = 0;
                 for (final Iterator<Map.Entry<String, X509Certificate>> it = certsMap.entrySet().iterator(); it.hasNext(); ) {
+                    LOG.debug("in CA background task i = " + i++);
                     final Map.Entry<String, X509Certificate> entry = it.next();
                     if (entry == null) {
                         continue;
@@ -327,7 +330,7 @@ public class CAManagerImpl extends ManagerBase implements CAManager {
 
                     final String hostDescription = String.format("host id=%d, uuid=%s, name=%s, ip=%s, zone id=%d",
                             host.getId(), host.getUuid(), host.getName(), hostIp, host.getDataCenterId());
-
+                    LOG.debug("cert renewal background task hostDescription: " + hostDescription)
                     try {
                         certificate.checkValidity(now.plusDays(CertExpiryAlertPeriod.valueIn(host.getClusterId())).toDate());
                     } catch (final CertificateExpiredException | CertificateNotYetValidException e) {
