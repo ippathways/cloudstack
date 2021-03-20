@@ -135,16 +135,30 @@ public class RootCAProviderTest {
     public void testCreateSSLEngineWithoutAuthStrictness() throws Exception {
         overrideDefaultConfigValue(RootCAProvider.rootCAAuthStrictness, "_defaultValue", "false");
         final SSLEngine e = provider.createSSLEngine(SSLUtils.getSSLContext(), "/1.2.3.4:5678", null);
+        RootCACustomTrustManager tms = provider.createRootCACustomTrustManager("1.2.3.4", false, null, caCertificate, null);
         Assert.assertFalse(e.getUseClientMode());
-        Assert.assertFalse(e.getNeedClientAuth());
+        try {
+            tms.checkClientTrusted(null, "1.2.3.4");
+        } catch (final CertificateException ex){
+            Assert.fail();
+        }
     }
 
     @Test
     public void testCreateSSLEngineWithAuthStrictness() throws Exception {
         overrideDefaultConfigValue(RootCAProvider.rootCAAuthStrictness, "_defaultValue", "true");
         final SSLEngine e = provider.createSSLEngine(SSLUtils.getSSLContext(), "/1.2.3.4:5678", null);
+        RootCACustomTrustManager tms = provider.createRootCACustomTrustManager("1.2.3.4", false, null, caCertificate, null);
         Assert.assertFalse(e.getUseClientMode());
-        Assert.assertTrue(e.getNeedClientAuth());
+        boolean isException = false;
+        try {
+            tms.checkClientTrusted(null, "1.2.3.4");
+        } catch (final CertificateException ex){
+            isException = true;
+        }
+        if (!isException) {
+            Assert.fail();
+        }
     }
 
     @Test
