@@ -76,6 +76,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
 
     @Override
     public void checkClientTrusted(final X509Certificate[] certificates, final String s) throws CertificateException {
+        LOG.debug("cert: entered checkClientTrusted");
         if (LOG.isDebugEnabled()) {
             printCertificateChain(certificates, s);
         }
@@ -86,9 +87,10 @@ public final class RootCACustomTrustManager implements X509TrustManager {
         if (authStrictness && primaryClientCertificate == null) {
             throw new CertificateException("In strict auth mode, certificate(s) are expected from client:" + clientAddress);
         } else if (primaryClientCertificate == null) {
+            LOG.debug("cert: primaryClientCertificate is null and not doing authStrictness");
             return;
         }
-
+        LOG.debug("cert: revocation check");
         // Revocation check
         final BigInteger serialNumber = primaryClientCertificate.getSerialNumber();
         if (serialNumber == null || crlDao.findBySerial(serialNumber) != null) {
@@ -97,7 +99,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
             LOG.error(errorMsg);
             exceptionMsg = (Strings.isNullOrEmpty(exceptionMsg)) ? errorMsg : (exceptionMsg + ". " + errorMsg);
         }
-
+        LOG.debug("cert: validity check");
         // Validity check
         try {
             primaryClientCertificate.checkValidity();
@@ -109,7 +111,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
                 exceptionMsg = (Strings.isNullOrEmpty(exceptionMsg)) ? errorMsg : (exceptionMsg + ". " + errorMsg);
             }
         }
-
+        LOG.debug("cert: ownership check");
         // Ownership check
         boolean certMatchesOwnership = false;
         if (primaryClientCertificate.getSubjectAlternativeNames() != null) {
@@ -128,6 +130,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
             exceptionMsg = (Strings.isNullOrEmpty(exceptionMsg)) ? errorMsg : (exceptionMsg + ". " + errorMsg);
         }
         if (authStrictness && !Strings.isNullOrEmpty(exceptionMsg)) {
+            LOG.debug("cert: hit exception " + exceptionMsg);
             throw new CertificateException(exceptionMsg);
         }
         if (LOG.isDebugEnabled()) {
@@ -139,6 +142,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
         }
 
         if (primaryClientCertificate != null && activeCertMap != null && !Strings.isNullOrEmpty(clientAddress)) {
+            LOG.debug("cert: adding to certmap");
             activeCertMap.put(clientAddress, primaryClientCertificate);
         }
     }
@@ -149,9 +153,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        if (!authStrictness) {
-            return null;
-        }
+        LOG.debug("cert: returning trusted caCertficates");
         return new X509Certificate[]{caCertificate};
     }
 }

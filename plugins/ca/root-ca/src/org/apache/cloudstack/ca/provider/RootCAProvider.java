@@ -258,20 +258,21 @@ public final class RootCAProvider extends AdapterBase implements CAProvider, Con
     public SSLEngine createSSLEngine(final SSLContext sslContext, final String remoteAddress, final Map<String, X509Certificate> certMap) throws KeyManagementException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException {
         final KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
         final TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-
+        LOG.debug("cert: entered createSSLEngine");
         final KeyStore ks = getCaKeyStore();
         kmf.init(ks, getKeyStorePassphrase());
         tmf.init(ks);
 
         final boolean authStrictness = rootCAAuthStrictness.value();
         final boolean allowExpiredCertificate = rootCAAllowExpiredCert.value();
-
+        LOG.debug("cert: creating trustmanager");
         TrustManager[] tms = new TrustManager[]{new RootCACustomTrustManager(remoteAddress, authStrictness, allowExpiredCertificate, certMap, caCertificate, crlDao)};
 
         sslContext.init(kmf.getKeyManagers(), tms, new SecureRandom());
         final SSLEngine sslEngine = sslContext.createSSLEngine();
         // Always needs to pass true, RootCACustomTrustManager.checkClientTrusted() will determine what level of validation will be performed
         sslEngine.setNeedClientAuth(true);
+        LOG.debug("cert: leaving createSSLEngine");
         return sslEngine;
     }
 

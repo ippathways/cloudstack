@@ -65,7 +65,6 @@ public class RootCACustomTrustManagerTest {
     public void testAuthNotStrict() throws Exception {
         final RootCACustomTrustManager trustManager = new RootCACustomTrustManager(clientIp, false, true, certMap, caCertificate, crlDao);
         trustManager.checkClientTrusted(null, null);
-        Assert.assertNull(trustManager.getAcceptedIssuers());
     }
 
     @Test(expected = CertificateException.class)
