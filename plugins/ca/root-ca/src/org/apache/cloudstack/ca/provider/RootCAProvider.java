@@ -267,9 +267,12 @@ public final class RootCAProvider extends AdapterBase implements CAProvider, Con
         final boolean allowExpiredCertificate = rootCAAllowExpiredCert.value();
 
         TrustManager[] tms = new TrustManager[]{new RootCACustomTrustManager(remoteAddress, authStrictness, allowExpiredCertificate, certMap, caCertificate, crlDao)};
+
         sslContext.init(kmf.getKeyManagers(), tms, new SecureRandom());
         final SSLEngine sslEngine = sslContext.createSSLEngine();
-        sslEngine.setNeedClientAuth(authStrictness);
+        // Always needs to pass true, RootCACustomTrustManager.checkClientTrusted() will determine what level of validation will be performed
+        sslEngine.setNeedClientAuth(true);
+
         return sslEngine;
     }
 
