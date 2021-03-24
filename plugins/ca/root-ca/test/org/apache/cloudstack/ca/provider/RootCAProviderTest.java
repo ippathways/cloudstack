@@ -134,38 +134,6 @@ public class RootCAProviderTest {
     }
 
     @Test
-    public void testWithoutAuthStrictness() throws Exception {
-        provider.rootCAAuthStrictness = Mockito.mock(ConfigKey.class);
-        Mockito.when(provider.rootCAAuthStrictness.value()).thenReturn(Boolean.FALSE);
-        final SSLEngine e = provider.createSSLEngine(SSLUtils.getSSLContext(), "/1.2.3.4:5678", null);
-        RootCACustomTrustManager tms = provider.createRootCACustomTrustManager("1.2.3.4", e.getNeedClientAuth(), false, null, caCertificate, null);
-
-        Assert.assertFalse(e.getNeedClientAuth());
-        try {
-            tms.checkClientTrusted(null, "1.2.3.4");
-        } catch (final CertificateException ex){
-            Assert.fail();
-        }
-    }
-
-    @Test
-    public void testWithAuthStrictness() throws Exception {
-        provider.rootCAAuthStrictness = Mockito.mock(ConfigKey.class);
-        Mockito.when(provider.rootCAAuthStrictness.value()).thenReturn(Boolean.TRUE);
-        final SSLEngine e = provider.createSSLEngine(SSLUtils.getSSLContext(), "/1.2.3.4:5678", null);
-        RootCACustomTrustManager tms = provider.createRootCACustomTrustManager("1.2.3.4", e.getNeedClientAuth(), false, null, caCertificate, null);
-
-        Assert.assertTrue(e.getNeedClientAuth());
-        boolean isException = false;
-        try {
-            tms.checkClientTrusted(null, "1.2.3.4");
-        } catch (final CertificateException ex){
-            isException = true;
-        }
-        Assert.assertTrue(isException);
-    }
-
-    @Test
     public void testGetProviderName() throws Exception {
         Assert.assertEquals(provider.getProviderName(), "root");
     }
