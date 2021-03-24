@@ -134,6 +134,24 @@ public class RootCAProviderTest {
     }
 
     @Test
+    public void testCreateSSLEngineWithoutAuthStrictness() throws Exception {
+        provider.rootCAAuthStrictness = Mockito.mock(ConfigKey.class);
+        Mockito.when(provider.rootCAAuthStrictness.value()).thenReturn(Boolean.FALSE);
+        final SSLEngine e = provider.createSSLEngine(SSLUtils.getSSLContext(), "/1.2.3.4:5678", null);
+        // getNeedClientAuth() always needs true, RootCACustomTrustManager.checkClientTrusted() will determine what level of validation will be performed
+        Assert.assertTrue(e.getNeedClientAuth());
+    }
+
+    @Test
+    public void testCreateSSLEngineWithAuthStrictness() throws Exception {
+        provider.rootCAAuthStrictness = Mockito.mock(ConfigKey.class);
+        Mockito.when(provider.rootCAAuthStrictness.value()).thenReturn(Boolean.TRUE);
+        final SSLEngine e = provider.createSSLEngine(SSLUtils.getSSLContext(), "/1.2.3.4:5678", null);
+        // getNeedClientAuth() always needs true, RootCACustomTrustManager.checkClientTrusted() will determine what level of validation will be performed
+        Assert.assertTrue(e.getNeedClientAuth());
+    }
+
+    @Test
     public void testGetProviderName() throws Exception {
         Assert.assertEquals(provider.getProviderName(), "root");
     }
