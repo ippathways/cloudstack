@@ -150,8 +150,9 @@ public final class RootCACustomTrustManager implements X509TrustManager {
     @Override
     public X509Certificate[] getAcceptedIssuers() {
         if (!authStrictness) {
-            return null;
+            LOG.error("getAcceptedIssuers() sees authStrictness as false");
         }
+        LOG.error("getAcceptedIssuers() sees authStrictness as true");
         return new X509Certificate[]{caCertificate};
     }
 }
