@@ -270,8 +270,12 @@ public final class RootCAProvider extends AdapterBase implements CAProvider, Con
 
         sslContext.init(kmf.getKeyManagers(), tms, new SecureRandom());
         final SSLEngine sslEngine = sslContext.createSSLEngine();
-        // Always needs to pass true, RootCACustomTrustManager.checkClientTrusted() will determine what level of validation will be performed
-        sslEngine.setNeedClientAuth(true);
+        // If authStrictness require SSL and validate client cert, otherwise prefer SSL but don't validate client cert
+        if (authStrictness) {
+            sslEngine.setNeedClientAuth(true);  // Require SSL and client cert validation
+        } else {
+            sslEngine.setWantClientAuth(true);  // Prefer SSL but don't validate client cert
+        }
 
         return sslEngine;
     }

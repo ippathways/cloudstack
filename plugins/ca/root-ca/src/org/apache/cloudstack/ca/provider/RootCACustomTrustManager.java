@@ -106,7 +106,7 @@ public final class RootCACustomTrustManager implements X509TrustManager {
                     primaryClientCertificate.getSerialNumber(), primaryClientCertificate.getSubjectDN(), clientAddress);
             LOG.error(errorMsg);
             if (!allowExpiredCertificate) {
-                exceptionMsg = (Strings.isNullOrEmpty(exceptionMsg)) ? errorMsg : (exceptionMsg + ". " + errorMsg);
+                throw new CertificateException(errorMsg);
             }
         }
 
